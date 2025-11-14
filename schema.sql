@@ -28,7 +28,9 @@ CREATE TABLE tickets (
     seat_no     INTEGER NOT NULL,
     price       REAL NOT NULL,
     status      TEXT NOT NULL DEFAULT 'reserved',
+    token       TEXT,
     created_at  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(trip_id, seat_no),
     FOREIGN KEY (trip_id) REFERENCES trips(id)
 );
+

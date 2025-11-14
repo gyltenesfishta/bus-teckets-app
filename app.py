@@ -7,53 +7,30 @@ SECRET_KEY = b"super-secret-key-change-this"
 
 app = Flask(__name__)
 
-# ------------------ Home ------------------
-@app.route("/")
-def home():
-    return "<h1>Bus Tickets App is running! 🚍</h1>"
-
-# ------------------ Routes list ------------------
-@app.route("/api/routes")
-def api_routes():
-    with get_connection() as conn:
-        rows = conn.execute(
-            "SELECT id, name, origin, destination FROM routes ORDER BY id"
-        ).fetchall()
-        routes = [dict(r) for r in rows]
-    return jsonify(routes)
-
-# ------------------ Trips list ------------------
-@app.route("/api/trips")
-def api_trips():
-    with get_connection() as conn:
-        rows = conn.execute(
-            """
-            SELECT t.id,
-                   t.route_id,
-                   r.name AS route_name,
-                   t.departure_at,
-                   t.base_price,
-                   t.total_seats
-            FROM trips t
-            JOIN routes r ON r.id = t.route_id
-            ORDER BY t.departure_at
-            """
-        ).fetchall()
-        trips = [dict(r) for r in rows]
-    return jsonify(trips)
-
-# ------------------ Book ticket (GREEDY + Dynamic pricing + HMAC) ------------------
 @app.route("/api/tickets", methods=["POST"])
 def api_tickets():
-    trip_id = request.json.get("trip_id")
+    # marrim trip_id dhe count nga request-i
+    data = request.json or {}
+    trip_id = data.get("trip_id")
+    count = data.get("count", 1)  # default 1 biletë
+
+    # validime bazike
     if not trip_id:
         return jsonify({"error": "trip_id is required"}), 400
 
+    try:
+        count = int(count)
+    except (TypeError, ValueError):
+        return jsonify({"error": "count must be an integer"}), 400
+
+    if count < 1 or count > 10:
+        return jsonify({"error": "count must be between 1 and 10"}), 400
+
     with get_connection() as conn:
-        # 1. Gjej total seats & base_price
+        # 1. Gjej total_seats & base_price
         trip = conn.execute(
             "SELECT total_seats, base_price FROM trips WHERE id = ?",
-            (trip_id,)
+            (trip_id,),
         ).fetchone()
 
         if not trip:
@@ -62,69 +39,91 @@ def api_tickets():
         total_seats = trip["total_seats"]
         base_price = trip["base_price"]
 
-        # 2. Gjej vendet e zëna
+        # 2. Vendet e zëna aktualisht
         taken_rows = conn.execute(
             "SELECT seat_no FROM tickets WHERE trip_id = ? ORDER BY seat_no",
-            (trip_id,)
+            (trip_id,),
         ).fetchall()
         taken_seats = {row["seat_no"] for row in taken_rows}
 
-        # 3. Llogaris occupancy për dynamic pricing
-        sold_count = len(taken_seats)
-        occupancy = sold_count / total_seats if total_seats > 0 else 0
+        # 3. Gjej një bllok me 'count' ulëse njëra pas tjetrës,
+        #    sa më afër mesit të autobusit
+        middle = total_seats / 2.0  # përdorim float për distancë më të saktë
+        best_block = None
+        best_distance = None
 
-        # Dynamic pricing algorithm
-        if occupancy < 0.3:
-            factor = 1.0
-        elif occupancy < 0.7:
-            factor = 1.2
-        else:
-            factor = 1.5
+        # start mund të jetë nga 1 deri te (total_seats - count + 1)
+        for start in range(1, total_seats - count + 2):
+            block = list(range(start, start + count))
 
-        price = round(base_price * factor, 2)
+            # kontrollo nëse krejt ulëset në këtë bllok janë të lira
+            if any(seat in taken_seats for seat in block):
+                continue
 
-        # 4. Algoritmi GREEDY – fillon nga mesi
-        middle = total_seats // 2
-        chosen_seat = None
+            # qendra e bllokut (p.sh. për 20,21,22 qendra është 21)
+            center = start + (count - 1) / 2.0
+            distance = abs(center - middle)
 
-        for offset in range(total_seats):
-            seat1 = middle + offset
-            seat2 = middle - offset
+            if best_block is None or distance < best_distance:
+                best_block = block
+                best_distance = distance
 
-            if 1 <= seat1 <= total_seats and seat1 not in taken_seats:
-                chosen_seat = seat1
-                break
+        if best_block is None:
+            return jsonify({"error": "Not enough adjacent seats available"}), 400
 
-            if 1 <= seat2 <= total_seats and seat2 not in taken_seats:
-                chosen_seat = seat2
-                break
+        tickets = []
 
-        if chosen_seat is None:
-            return jsonify({"error": "No seats available"}), 400
-
-        # 5. Genero token me HMAC
-        message = f"{trip_id}:{chosen_seat}".encode("utf-8")
-        token = hmac.new(SECRET_KEY, message, hashlib.sha256).hexdigest()
-
-        # 6. Ruaj biletën – me token
         try:
-            conn.execute(
-                "INSERT INTO tickets (trip_id, seat_no, price, status, token) "
-                "VALUES (?, ?, ?, 'reserved', ?)",
-                (trip_id, chosen_seat, price, token)
-            )
+            # 4. Për secilën ulëse në bllok, llogarit çmimin (dynamic pricing)
+            #    dhe fut në DB
+            for i, seat_no in enumerate(best_block):
+                # sold_count rritet teksa po shtojmë bileta
+                sold_count = len(taken_seats) + i
+                occupancy = sold_count / total_seats if total_seats > 0 else 0
+
+                # Dynamic pricing
+                if occupancy < 0.3:
+                    factor = 1.0
+                elif occupancy < 0.7:
+                    factor = 1.2
+                else:
+                    factor = 1.5
+
+                price = round(base_price * factor, 2)
+
+                # HMAC token për këtë biletë
+                message = f"{trip_id}:{seat_no}".encode("utf-8")
+                token = hmac.new(SECRET_KEY, message, hashlib.sha256).hexdigest()
+
+                # Ruaj biletën në DB
+                conn.execute(
+                    """
+                    INSERT INTO tickets (trip_id, seat_no, price, status, token)
+                    VALUES (?, ?, ?, 'reserved', ?)
+                    """,
+                    (trip_id, seat_no, price, token),
+                )
+
+                tickets.append({
+                    "seat_no": seat_no,
+                    "price": price,
+                    "status": "reserved",
+                    "token": token,
+                })
+
             conn.commit()
+
         except Exception as e:
+            conn.rollback()
             return jsonify({"error": "Database error", "details": str(e)}), 500
 
-        # 7. Kthe tiketën
+        # 5. Kthe rezultat për të gjitha biletat
         return jsonify({
             "trip_id": trip_id,
-            "seat_no": chosen_seat,
-            "price": price,
-            "status": "reserved",
-            "token": token
+            "count": len(tickets),
+            "tickets": tickets,
         })
+
 
 # ------------------ Start server ------------------
 if __name__ == "__main__":

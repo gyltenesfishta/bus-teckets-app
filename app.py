@@ -12,7 +12,7 @@ def api_tickets():
     # marrim trip_id dhe count nga request-i
     data = request.json or {}
     trip_id = data.get("trip_id")
-    count = data.get("count", 1)  # default 1 biletë
+    count = data.get("count", 1)  # default 1 bilete
 
     # validime bazike
     if not trip_id:
@@ -27,7 +27,7 @@ def api_tickets():
         return jsonify({"error": "count must be between 1 and 10"}), 400
 
     with get_connection() as conn:
-        # 1. Gjej total_seats & base_price
+        #  Gjej total_seats & base_price
         trip = conn.execute(
             "SELECT total_seats, base_price FROM trips WHERE id = ?",
             (trip_id,),
@@ -39,14 +39,14 @@ def api_tickets():
         total_seats = trip["total_seats"]
         base_price = trip["base_price"]
 
-        # 2. Vendet e zëna aktualisht
+        #  Vendet e zena aktualisht
         taken_rows = conn.execute(
             "SELECT seat_no FROM tickets WHERE trip_id = ? ORDER BY seat_no",
             (trip_id,),
         ).fetchall()
         taken_seats = {row["seat_no"] for row in taken_rows}
 
-        # 3. Gjej një bllok me 'count' ulëse njëra pas tjetrës,
+        #  Gjej një bllok me 'count' ulëse njera pas tjetres,
         #    sa më afër mesit të autobusit
         middle = total_seats / 2.0  # përdorim float për distancë më të saktë
         best_block = None
@@ -74,7 +74,7 @@ def api_tickets():
         tickets = []
 
         try:
-            # 4. Për secilën ulëse në bllok, llogarit çmimin (dynamic pricing)
+            # Për secilën ulëse në bllok, llogarit çmimin (dynamic pricing)
             #    dhe fut në DB
             for i, seat_no in enumerate(best_block):
                 # sold_count rritet teksa po shtojmë bileta
@@ -117,14 +117,12 @@ def api_tickets():
             conn.rollback()
             return jsonify({"error": "Database error", "details": str(e)}), 500
 
-        # 5. Kthe rezultat për të gjitha biletat
+        #  Kthe rezultat për të gjitha biletat
         return jsonify({
             "trip_id": trip_id,
             "count": len(tickets),
             "tickets": tickets,
         })
 
-
-# ------------------ Start server ------------------
 if __name__ == "__main__":
     app.run(debug=True)

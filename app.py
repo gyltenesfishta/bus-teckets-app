@@ -18,21 +18,12 @@ def api_tickets():
     if not trip_id:
         return jsonify({"error": "trip_id is required"}), 400
 
-    try:
-        count = int(count)
-    except (TypeError, ValueError):
-        return jsonify({"error": "count must be an integer"}), 400
-
-    if count < 1 or count > 10:
-        return jsonify({"error": "count must be between 1 and 10"}), 400
-
     with get_connection() as conn:
-        #  Gjej total_seats & base_price
+        # 1. Gjej total_seats & base_price
         trip = conn.execute(
             "SELECT total_seats, base_price FROM trips WHERE id = ?",
             (trip_id,),
         ).fetchone()
-
         if not trip:
             return jsonify({"error": "Trip not found"}), 404
 

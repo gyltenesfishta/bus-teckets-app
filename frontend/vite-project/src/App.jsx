@@ -1,7 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import "./App.css";
 
-// 1. Linjat tona me çmimet bazë (për drejtim)
 const ROUTES = [
   { from: "Prishtinë", to: "Podujevë", price: 1.5 },
   { from: "Prishtinë", to: "Fushë Kosovë", price: 1.5 },
@@ -14,159 +13,137 @@ const ROUTES = [
   { from: "Prishtinë", to: "Malishevë", price: 3.5 },
 ];
 
-// 2. Kthe çmimin pavarësisht drejtimit (Prishtinë–Pejë = Pejë–Prishtinë)
 function getRoutePrice(from, to) {
-  const route = ROUTES.find(
-    (r) =>
-      (r.from === from && r.to === to) ||
-      (r.from === to && r.to === from)
+  const r = ROUTES.find(
+    (rr) =>
+      (rr.from === from && rr.to === to) ||
+      (rr.from === to && rr.to === from)
   );
-  return route ? route.price : 0;
+  return r ? r.price : 0;
 }
 
 function App() {
-  // lloji i udhëtimit
-  const [tripType, setTripType] = useState("one-way"); // "one-way" ose "round"
-
-  // From / To
+  const [tripType, setTripType] = useState("oneWay");
   const [from, setFrom] = useState("Prishtinë");
   const [to, setTo] = useState("Gjilan");
-
-  // Datat
-  const today = new Date().toISOString().slice(0, 10);
-  const [departureDate, setDepartureDate] = useState(today);
-  const [returnDate, setReturnDate] = useState(today);
-
-  // Numri i pasagjerëve
+  const [departure, setDeparture] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [returnDate, setReturnDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
   const [passengers, setPassengers] = useState(1);
 
-  // Çmimi
-  const [basePrice, setBasePrice] = useState(getRoutePrice("Prishtinë", "Gjilan"));
-  const [totalPrice, setTotalPrice] = useState(basePrice);
-
-  // Sa herë që ndryshon from/to/passengers/tripType → ri-llogarit çmimin
-  useMemo(() => {
-    const pricePerDirection = getRoutePrice(from, to);
-    setBasePrice(pricePerDirection);
-
-    const directionMultiplier = tripType === "round" ? 2 : 1; // vajtje-ardhje
-    const total = pricePerDirection * passengers * directionMultiplier;
-    setTotalPrice(total);
-  }, [from, to, passengers, tripType]);
+  const basePrice = getRoutePrice(from, to);
+  const isRoundTrip = tripType === "roundTrip";
+  const total = basePrice * passengers * (isRoundTrip ? 2 : 1);
 
   const handleSwap = () => {
     setFrom(to);
     setTo(from);
   };
 
-  const handleSearch = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    // këtu më vonë bëjmë thirrjen në backend me trip_id, dates, passengers, etj.
-    console.log({
+    // këtu më vonë thërrasim backend-in /api/trips ose /api/tickets
+    console.log("Search clicked", {
       tripType,
       from,
       to,
-      departureDate,
-      returnDate: tripType === "round" ? returnDate : null,
+      departure,
+      returnDate,
       passengers,
     });
-    alert("Kërkimi u dërgua (front-end demonstruese).");
   };
 
   return (
     <div className="app">
-      {/* Hero bar i gjelbër */}
       <header className="hero">
-        <h1>Udhëtime me autobus me kosto të ulët</h1>
-        <p>
-          Rezervo online biletat për linjat ndërmjet Prishtinës dhe qyteteve përreth.
-        </p>
+        <div className="hero-inner">
+          <h1>Udhëtime me autobus me kosto të ulët</h1>
+          <p>
+            Rezervo online biletat për linjat ndërmjet Prishtinës dhe qyteteve
+            përreth.
+          </p>
+        </div>
       </header>
 
-      {/* Karta kryesore */}
-      <main className="search-container">
-        <form className="search-card" onSubmit={handleSearch}>
-          {/* One-way / Round-trip */}
-          <div className="trip-type">
-            <label>
+      <main className="main">
+        <div className="search-card">
+          {/* One way / Round trip */}
+          <div className="trip-type-row">
+            <label className="radio-pill">
               <input
                 type="radio"
                 name="tripType"
-                value="one-way"
-                checked={tripType === "one-way"}
-                onChange={() => setTripType("one-way")}
+                value="oneWay"
+                checked={tripType === "oneWay"}
+                onChange={() => setTripType("oneWay")}
               />
-              One Way
+              <span>One Way</span>
             </label>
-            <label>
+            <label className="radio-pill">
               <input
                 type="radio"
                 name="tripType"
-                value="round"
-                checked={tripType === "round"}
-                onChange={() => setTripType("round")}
+                value="roundTrip"
+                checked={tripType === "roundTrip"}
+                onChange={() => setTripType("roundTrip")}
               />
-              Round Trip
+              <span>Round Trip</span>
             </label>
           </div>
 
-          {/* From / To */}
-          <div className="row">
+          <form className="search-form" onSubmit={handleSubmit}>
+            {/* From */}
             <div className="field">
               <label>From</label>
-              <select value={from} onChange={(e) => setFrom(e.target.value)}>
-                <option>Prishtinë</option>
-                <option>Podujevë</option>
-                <option>Fushë Kosovë</option>
-                <option>Lipjan</option>
-                <option>Pejë</option>
-                <option>Gjilan</option>
-                <option>Ferizaj</option>
-                <option>Prizren</option>
-                <option>Deçan</option>
-                <option>Malishevë</option>
-              </select>
+              <div className="field-with-button">
+                <select
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                >
+                  {ROUTES.map((r) => (
+                    <option key={r.to} value={r.from}>
+                      {r.from}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="swap-btn"
+                  onClick={handleSwap}
+                  title="Ndërro drejtimin"
+                >
+                  ⇄
+                </button>
+              </div>
             </div>
 
-            <button
-              type="button"
-              className="swap-btn"
-              onClick={handleSwap}
-              title="Ndërro drejtimin"
-            >
-              ⇅
-            </button>
-
+            {/* To */}
             <div className="field">
               <label>To</label>
               <select value={to} onChange={(e) => setTo(e.target.value)}>
-                <option>Prishtinë</option>
-                <option>Podujevë</option>
-                <option>Fushë Kosovë</option>
-                <option>Lipjan</option>
-                <option>Pejë</option>
-                <option>Gjilan</option>
-                <option>Ferizaj</option>
-                <option>Prizren</option>
-                <option>Deçan</option>
-                <option>Malishevë</option>
+                {ROUTES.map((r) => (
+                  <option key={r.to} value={r.to}>
+                    {r.to}
+                  </option>
+                ))}
               </select>
             </div>
-          </div>
 
-          {/* Datat + Passengers */}
-          <div className="row">
+            {/* Departure */}
             <div className="field">
               <label>Departure</label>
               <input
                 type="date"
-                value={departureDate}
-                onChange={(e) => setDepartureDate(e.target.value)}
+                value={departure}
+                onChange={(e) => setDeparture(e.target.value)}
               />
             </div>
 
-            {tripType === "round" && (
+            {/* Return only if Round Trip */}
+            {isRoundTrip && (
               <div className="field">
                 <label>Return</label>
                 <input
@@ -174,9 +151,10 @@ function App() {
                   value={returnDate}
                   onChange={(e) => setReturnDate(e.target.value)}
                 />
-              </div>
+            </div>
             )}
 
+            {/* Passengers */}
             <div className="field">
               <label>Passengers</label>
               <input
@@ -189,32 +167,32 @@ function App() {
                 }
               />
             </div>
-          </div>
 
-          {/* Butoni + çmimet */}
-          <div className="bottom-row">
-            <button type="submit" className="search-btn">
-              Search
-            </button>
-
-            <div className="price-info">
-              <div>
-                Çmimi bazë:{" "}
-                <strong>{basePrice.toFixed(2)} €</strong> / pasagjer (një drejtim)
-              </div>
-              <div>
-                Totali për këtë kërkim:{" "}
-                <strong>{totalPrice.toFixed(2)} €</strong>
-                {tripType === "round" && " (vajtje–ardhje)"}
-              </div>
+            {/* Search button */}
+            <div className="field field-button">
+              <button type="submit" className="primary-btn">
+                Search
+              </button>
             </div>
+          </form>
+
+          {/* Summary */}
+          <div className="price-summary">
+            <p>
+              Çmimi bazë:{" "}
+              <strong>{basePrice.toFixed(2)} €</strong> / pasagjer (një
+              drejtim)
+            </p>
+            <p>
+              Totali për këtë kërkim:{" "}
+              <strong>{total.toFixed(2)} €</strong>{" "}
+              {isRoundTrip && <span>(vajtje–ardhje)</span>}
+            </p>
           </div>
-        </form>
+        </div>
       </main>
     </div>
   );
 }
 
 export default App;
-
-

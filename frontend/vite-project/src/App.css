@@ -23,7 +23,7 @@ body {
 .hero {
   background: linear-gradient(135deg, #0bb44b, #18c95e);
   color: #fff;
-  padding: 48px 0 72px;
+  padding: 78px 0 72px;
 }
 
 .hero-inner {
@@ -53,11 +53,28 @@ body {
 
 /* Karta e kërkimit */
 .search-card {
-  background: #fff;
+  background: white;
   border-radius: 16px;
   box-shadow: 0 18px 35px rgba(0, 0, 0, 0.08);
   padding: 20px 24px 24px;
 }
+.result-card {
+  max-width: 900px;
+  margin: 24px auto 0;
+  padding: 20px 24px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.result-card h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+}
+
 
 /* One way / Round trip */
 .trip-type-row {
@@ -180,6 +197,15 @@ body {
 .primary-btn:active {
   transform: translateY(1px);
   box-shadow: none;
+}
+
+.reserve-button {
+  margin-left: 12px;
+  background-color: #ff7a00;
+}
+
+.reserve-button:hover {
+  background-color: #e56c00;
 }
 
 /* Summary i çmimit */

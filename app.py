@@ -133,6 +133,50 @@ def api_tickets():
                 "tickets": tickets,
             }
         )
+@app.route("/api/tickets/confirm", methods=["POST"])
+def api_confirm_tickets():
+    data = request.json or {}
+    tokens = data.get("tokens")
+
+    # tokens duhet të jetë listë me së paku 1 token
+    if not tokens or not isinstance(tokens, list):
+        return jsonify({"error": "tokens list is required"}), 400
+
+    with get_connection() as conn:
+        # përgatisim placeholderët ?,?,?... sipas numrit të tokeneve
+        placeholders = ",".join(["?"] * len(tokens))
+
+        rows = conn.execute(
+            f"""
+            SELECT id, token, status
+            FROM tickets
+            WHERE token IN ({placeholders})
+            """,
+            tokens,
+        ).fetchall()
+
+        if not rows:
+            return jsonify({"error": "No tickets found for provided tokens"}), 404
+
+        # ndajmë cilat janë already paid / reserved
+        already_paid = [r["token"] for r in rows if r["status"] == "paid"]
+        to_pay_ids = [r["id"] for r in rows if r["status"] == "reserved"]
+
+        if to_pay_ids:
+            placeholders_ids = ",".join(["?"] * len(to_pay_ids))
+            conn.execute(
+                f"UPDATE tickets SET status = 'paid' WHERE id IN ({placeholders_ids})",
+                to_pay_ids,
+            )
+            conn.commit()
+
+        return jsonify({
+            "paid_count": len(to_pay_ids),
+            "already_paid": already_paid,
+            "total_found": len(rows),
+            "tokens": tokens,
+        })
+
 
 
 if __name__ == "__main__":

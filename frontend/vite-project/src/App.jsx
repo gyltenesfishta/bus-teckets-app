@@ -55,6 +55,10 @@ function App() {
   const [reservationResult, setReservationResult] = useState(null);
   const [reserveError, setReserveError] = useState(null);
   const [isReserving, setIsReserving] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [paymentError, setPaymentError] = useState(null);
+
 
   const isRoundTrip = tripType === "round-trip";
 
@@ -152,6 +156,43 @@ function App() {
       setIsReserving(false);
     }
   };
+    const handleConfirmPayment = async () => {
+    if (!reservationResult || !reservationResult.tickets) return;
+
+    const tokens = reservationResult.tickets.map((t) => t.token);
+
+    try {
+      setIsPaying(true);
+      setPaymentError(null);
+      setPaymentStatus(null);
+
+      const response = await fetch("http://127.0.0.1:5000/api/tickets/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tokens }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        setPaymentError(errData.error || "Gabim gjatë konfirmimit të pagesës.");
+        return;
+      }
+
+      const data = await response.json();
+      setPaymentStatus(
+        `U konfirmuan ${data.paid_count} bileta. ${
+          data.already_paid && data.already_paid.length
+            ? "Disa bileta kanë qenë tashmë të paguara."
+            : ""
+        }`
+      );
+    } catch (err) {
+      setPaymentError("Nuk mund të lidhem me serverin për pagesë.");
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
 
   return (
     <div className="app-root">
@@ -365,31 +406,44 @@ function App() {
 
         {/* REZULTATI I REZERVIMIT REAL */}
         {reservationResult && (
-          <section className="result-card">
-            <h2>Rezervimi i biletave</h2>
-            <p>
-              U rezervuan{" "}
-              <strong>{reservationResult.count}</strong> bileta
-              për këtë udhëtim.
-            </p>
-            <ul className="result-details">
-              {reservationResult.tickets.map((t, idx) => (
-                <li key={idx}>
-                  Vendi: <strong>{t.seat_no}</strong>, Çmimi:{" "}
-                  <strong>{t.price.toFixed(2)} €</strong>
-                  <br />
-                  Token: <code>{t.token}</code>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+  <section className="result-card">
+    <h2>Rezervimi i biletave</h2>
+    <p>
+      U rezervuan{" "}
+      <strong>{reservationResult.count}</strong> bileta
+      për këtë udhëtim.
+    </p>
+    <ul className="result-details">
+      {reservationResult.tickets.map((t, idx) => (
+        <li key={idx}>
+          Vendi: <strong>{t.seat_no}</strong>, Çmimi:{" "}
+          <strong>{t.price.toFixed(2)} €</strong>
+          <br />
+          Token: <code>{t.token}</code>
+        </li>
+      ))}
+    </ul>
 
-        {reserveError && (
-          <section className="result-card error-card">
-            <strong>{reserveError}</strong>
-          </section>
-        )}
+    {/* Butoni për konfirmim pagese */}
+    <button
+      type="button"
+      className="search-button reserve-button"
+      onClick={handleConfirmPayment}
+      disabled={isPaying}
+    >
+      {isPaying ? "Duke konfirmuar..." : "Konfirmo pagesën"}
+    </button>
+
+    {/* Mesazhet e pagesës */}
+    {paymentStatus && (
+      <p style={{ marginTop: "10px", color: "green" }}>{paymentStatus}</p>
+    )}
+    {paymentError && (
+      <p style={{ marginTop: "10px", color: "red" }}>{paymentError}</p>
+    )}
+  </section>
+)}
+
       </main>
     </div>
   );

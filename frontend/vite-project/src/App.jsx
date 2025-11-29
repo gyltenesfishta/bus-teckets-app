@@ -14,7 +14,7 @@ const ROUTES = [
   { id: 9, from: "Prishtinë", to: "Malishevë", price: 3.5 },
 ];
 
-// gjej çmimin për një drejtim, pavarësisht drejtimit
+// çmimi për një drejtim, pavarësisht kahjes
 function getRoutePrice(from, to) {
   if (from === to) return null;
 
@@ -26,7 +26,7 @@ function getRoutePrice(from, to) {
   return route ? route.price : null;
 }
 
-// gjej ID-në e linjës (route_id) sipas from/to
+// ID e linjës sipas from/to
 function getRouteId(from, to) {
   if (from === to) return null;
 
@@ -46,7 +46,15 @@ function App() {
   const todayISO = new Date().toISOString().slice(0, 10);
   const [departureDate, setDepartureDate] = useState(todayISO);
   const [returnDate, setReturnDate] = useState(todayISO);
-  const [passengers, setPassengers] = useState(1);
+  const [isPassengersOpen, setIsPassengersOpen] = useState(false);
+  const [adults, setAdults] = useState(1);
+  const [children, setChildren] = useState(0);
+
+// total pasagjerë = adults + children
+  const passengers = useMemo(
+  () => adults + children,
+  [adults, children]
+);
 
   // rezultati i fundit i Search
   const [searchResult, setSearchResult] = useState(null);
@@ -55,10 +63,18 @@ function App() {
   const [reservationResult, setReservationResult] = useState(null);
   const [reserveError, setReserveError] = useState(null);
   const [isReserving, setIsReserving] = useState(false);
+
   const [isPaying, setIsPaying] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
 
+  // view: "search" | "results" | "payment"
+  const [view, setView] = useState("search");
+
+  // për kontrollimin e biletës
+  const [validateToken, setValidateToken] = useState("");
+  const [validateResult, setValidateResult] = useState(null);
+  const [validateError, setValidateError] = useState(null);
 
   const isRoundTrip = tripType === "round-trip";
 
@@ -73,16 +89,57 @@ function App() {
     setTo(from);
   };
 
-  const handlePassengersChange = (e) => {
-    const value = parseInt(e.target.value, 10);
-    if (Number.isNaN(value) || value < 1) {
-      setPassengers(1);
-    } else if (value > 10) {
-      setPassengers(10);
-    } else {
-      setPassengers(value);
-    }
-  };
+  const handleAdultsIncrement = () => {
+  setAdults((prev) => Math.min(10, prev + 1));
+};
+
+const handleAdultsDecrement = () => {
+  setAdults((prev) => Math.max(1, prev - 1)); // të paktën 1 adult
+};
+
+const handleChildrenIncrement = () => {
+  setChildren((prev) => Math.min(10, prev + 1));
+};
+
+const handleChildrenDecrement = () => {
+  setChildren((prev) => Math.max(0, prev - 1));
+};
+
+// Teksti që shfaqet në butonin "Passengers"
+const passengerLabel = useMemo(() => {
+  const parts = [];
+  if (adults === 1) parts.push("1 Adult");
+  else if (adults > 1) parts.push(`${adults} Adults`);
+
+  if (children === 1) parts.push("1 Child");
+  else if (children > 1) parts.push(`${children} Children`);
+
+  if (parts.length === 0) return "Passengers";
+  return parts.join(", ");
+}, [adults, children]);
+
+
+  const handleAdultsChange = (e) => {
+  const value = parseInt(e.target.value, 10);
+  if (Number.isNaN(value) || value < 1) {
+    setAdults(1);
+  } else if (value > 10) {
+    setAdults(10);
+  } else {
+    setAdults(value);
+  }
+};
+
+const handleChildrenChange = (e) => {
+  const value = parseInt(e.target.value, 10);
+  if (Number.isNaN(value) || value < 0) {
+    setChildren(0);
+  } else if (value > 10) {
+    setChildren(10);
+  } else {
+    setChildren(value);
+  }
+};
 
   // kur shtypet Search – vetëm llogari, pa backend
   const handleSubmit = (e) => {
@@ -93,6 +150,7 @@ function App() {
       setSearchResult({
         error: "route-not-found",
       });
+      setView("results");
       return;
     }
 
@@ -114,9 +172,12 @@ function App() {
     // sa herë bëjmë Search, pastro rezultatin e vjetër të rezervimit
     setReservationResult(null);
     setReserveError(null);
+    setPaymentStatus(null);
+    setPaymentError(null);
+    setView("results");
   };
 
-  // b) Kur shtypet "Rezervo biletat" – thërrasim /api/tickets
+  // Kur shtypet "Rezervo biletat" – thërrasim /api/tickets
   const handleReserve = async () => {
     if (!searchResult || searchResult.error) return;
 
@@ -150,13 +211,42 @@ function App() {
       const data = await response.json();
       // data: { trip_id, count, tickets: [{ seat_no, price, token }, ...] }
       setReservationResult(data);
+      setView("payment");
     } catch (err) {
       setReserveError("Nuk mund të lidhem me serverin.");
     } finally {
       setIsReserving(false);
     }
   };
-    const handleConfirmPayment = async () => {
+
+  const handleValidateTicket = async (e) => {
+    e.preventDefault?.();
+
+    const token = validateToken.trim();
+    if (!token) return;
+
+    try {
+      setValidateError(null);
+      setValidateResult(null);
+
+      const response = await fetch(
+        `http://127.0.0.1:5000/api/tickets/${encodeURIComponent(token)}`
+      );
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        setValidateError(errData.error || "Gabim gjatë kontrollit të biletës.");
+        return;
+      }
+
+      const data = await response.json();
+      setValidateResult(data);
+    } catch (err) {
+      setValidateError("Nuk mund të lidhem me serverin.");
+    }
+  };
+
+  const handleConfirmPayment = async () => {
     if (!reservationResult || !reservationResult.tickets) return;
 
     const tokens = reservationResult.tickets.map((t) => t.token);
@@ -193,261 +283,357 @@ function App() {
     }
   };
 
-
   return (
     <div className="app-root">
-      {/* HERO JESHIL SIPËR */}
+      {/* HERO */}
       <header className="hero">
-        <h1>Udhëtime me autobus me kosto të ulët</h1>
+        <h1>Low cost bus travel</h1>
         <p>
-          Rezervo online biletat për linjat ndërmjet Prishtinës
-          dhe qyteteve përreth.
+          Book bus tickets online for routes between Prishtina and nearby cities
         </p>
       </header>
 
-      {/* FORMA + REZULTATET */}
       <main className="search-section">
-        <div className="search-card">
-          {/* One way / Round trip */}
-          <div className="trip-type-row">
-            <label className="radio">
-              <input
-                type="radio"
-                name="tripType"
-                value="one-way"
-                checked={tripType === "one-way"}
-                onChange={() => setTripType("one-way")}
-              />
-              <span>One Way</span>
-            </label>
-            <label className="radio">
-              <input
-                type="radio"
-                name="tripType"
-                value="round-trip"
-                checked={tripType === "round-trip"}
-                onChange={() => setTripType("round-trip")}
-              />
-              <span>Round Trip</span>
-            </label>
-          </div>
+        {/* --------------- FAQJA 1: KËRKIMI --------------- */}
+        {view === "search" && (
+          <div className="search-card">
+            {/* Tipi i udhëtimit */}
+            <div className="trip-type-row">
+              <label className="radio">
+                <input
+                  type="radio"
+                  name="tripType"
+                  value="one-way"
+                  checked={tripType === "one-way"}
+                  onChange={() => setTripType("one-way")}
+                />
+                <span>One Way</span>
+              </label>
 
-          <form className="search-form" onSubmit={handleSubmit}>
-            {/* From / To */}
-            <div className="row">
-              <div className="field">
-                <label>From</label>
-                <select
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                >
-                  <option value="Prishtinë">Prishtinë</option>
-                </select>
-              </div>
-
-              <button
-                type="button"
-                className="swap-btn"
-                onClick={handleSwapCities}
-              >
-                ⇄
-              </button>
-
-              <div className="field">
-                <label>To</label>
-                <select
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                >
-                  {ROUTES.map((r) => (
-                    <option key={r.to} value={r.to}>
-                      {r.to}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <label className="radio">
+                <input
+                  type="radio"
+                  name="tripType"
+                  value="round-trip"
+                  checked={tripType === "round-trip"}
+                  onChange={() => setTripType("round-trip")}
+                />
+                <span>Round Trip</span>
+              </label>
             </div>
 
-            {/* Datat + pasagjerët */}
-            <div className="row">
-              <div className="field">
-                <label>Departure</label>
-                <input
-                  type="date"
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  min={todayISO}
-                />
-              </div>
+            {/* Forma e kërkimit */}
+            <form className="search-form" onSubmit={handleSubmit}>
+              {/* From & To */}
+          
++           <div className="row city-row">
 
-              <div className="field">
-                <label>Return</label>
-                <input
-                  type="date"
-                  value={returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  min={departureDate}
-                  disabled={!isRoundTrip}
-                />
-              </div>
+                <div className="field">
+                  <label>From</label>
+                  <select
+                    value={from}
+                    onChange={(e) => setFrom(e.target.value)}
+                  >
+                    <option value="Prishtinë">Prishtinë</option>
+                  </select>
+                </div>
+              
 
-              <div className="field">
-                <label>Passengers</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={passengers}
-                  onChange={handlePassengersChange}
-                />
-              </div>
-            </div>
-
-            {/* Butonat poshtë */}
-            <div className="row row-bottom">
-              <button type="submit" className="search-button">
-                Search
-              </button>
-
-              {searchResult && !searchResult.error && (
                 <button
                   type="button"
-                  className="search-button reserve-button"
-                  onClick={handleReserve}
-                  disabled={isReserving}
+                  className="swap-btn"
+                  onClick={handleSwapCities}
                 >
-                  {isReserving ? "Duke rezervuar..." : "Rezervo biletat"}
+                  ⇄
                 </button>
-              )}
-            </div>
-          </form>
 
-          {/* Përmbledhja e çmimit */}
-          <div className="price-summary">
-            <p>
-              Çmimi bazë:{" "}
-              {basePrice ? (
-                <>
-                  <strong>{basePrice.toFixed(2)} €</strong> / pasagjer
-                  (një drejtim)
-                </>
-              ) : (
-                "- € / pasagjer (zgjedh relacione valide)"
-              )}
-            </p>
+                <div className="field">
+                  <label>To</label>
+                  <select
+                    value={to}
+                    onChange={(e) => setTo(e.target.value)}
+                  >
+                    {ROUTES.map((r) => (
+                      <option key={r.to} value={r.to}>
+                        {r.to}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-            <p>
-              Totali për këtë kërkim:{" "}
-              {searchResult && !searchResult.error ? (
-                <>
-                  <strong>
-                    {searchResult.total_price.toFixed(2)} €
-                  </strong>{" "}
-                  {isRoundTrip ? "(vajtje–ardhje)" : "(një drejtim)"}
-                </>
-              ) : (
-                "- € (shtyp Search)"
-              )}
-            </p>
-          </div>
+              {/* Dates + Passengers */}
+              <div className="row date-passenger-row">
+                <div className="field">
+                  <label>Departure</label>
+                  <input
+                    type="date"
+                    value={departureDate}
+                    onChange={(e) => setDepartureDate(e.target.value)}
+                    min={todayISO}
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Return</label>
+                  <input
+                    type="date"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    min={departureDate}
+                    disabled={tripType !== "round-trip"}
+                  />
+                </div>
+
+                <div className="field passengers-dropdown">
+  <label>Passengers</label>
+
+  {/* Butoni që shfaq totalin dhe hap menunë */}
+  <button
+    type="button"
+    className="passengers-toggle"
+    onClick={() => setIsPassengersOpen((prev) => !prev)}
+  >
+    <span>{passengerLabel}</span>
+    <span className="chevron">▾</span>
+  </button>
+
+  {/* Menuja e brendshme – si te FlixBus */}
+  {isPassengersOpen && (
+    <div className="passengers-menu">
+      {/* Adults */}
+      <div className="passengers-row">
+        <div className="passengers-row-text">
+          <div className="title">Adults</div>
+          <div className="subtitle">15+ years</div>
         </div>
+        <div className="passengers-counter">
+          <button
+            type="button"
+            onClick={handleAdultsDecrement}
+            className="counter-btn"
+          >
+            –
+          </button>
+          <span className="counter-value">{adults}</span>
+          <button
+            type="button"
+            onClick={handleAdultsIncrement}
+            className="counter-btn"
+          >
+            +
+          </button>
+        </div>
+      </div>
 
-        {/* REZULTATI I KËRKIMIT */}
-        {searchResult && (
-          <section className="result-card">
-            {searchResult.error === "route-not-found" ? (
-              <p className="result-error">
-                Nuk u gjet linjë valide për këtë drejtim. Të lutem
-                zgjidh një kombinim tjetër From / To.
+      {/* Children */}
+      <div className="passengers-row">
+        <div className="passengers-row-text">
+          <div className="title">Children</div>
+          <div className="subtitle">0 to 14 years</div>
+        </div>
+        <div className="passengers-counter">
+          <button
+            type="button"
+            onClick={handleChildrenDecrement}
+            className="counter-btn"
+          >
+            –
+          </button>
+          <span className="counter-value">{children}</span>
+          <button
+            type="button"
+            onClick={handleChildrenIncrement}
+            className="counter-btn"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
+
+              </div>
+
+              <div className="row row-bottom">
+                <button type="submit" className="search-button">
+                  Search
+                </button>
+              </div>
+            </form>
+
+            {/* Price Summary */}
+            <div className="price-summary">
+              <p>
+                Base price:{" "}
+                {basePrice ? (
+                  <>
+                    <strong>{basePrice.toFixed(2)} €</strong> / passenger
+                  </>
+                ) : (
+                  "- €"
+                )}
               </p>
-            ) : (
-              <>
-                <h2>Rezultati i kërkimit</h2>
-                <ul className="result-details">
-                  <li>
-                    <strong>Drejtimi:</strong> {searchResult.from} →{" "}
-                    {searchResult.to}
-                  </li>
-                  <li>
-                    <strong>Lloji udhëtimit:</strong>{" "}
-                    {searchResult.trip_type === "round-trip"
-                      ? "Vajtje–ardhje"
-                      : "Një drejtim"}
-                  </li>
-                  <li>
-                    <strong>Data e nisjes:</strong>{" "}
-                    {searchResult.departureDate}
-                  </li>
-                  {searchResult.trip_type === "round-trip" &&
-                    searchResult.returnDate && (
-                      <li>
-                        <strong>Data e kthimit:</strong>{" "}
-                        {searchResult.returnDate}
-                      </li>
-                    )}
-                  <li>
-                    <strong>Pasagjerë:</strong>{" "}
-                    {searchResult.passengers}
-                  </li>
-                  <li>
-                    <strong>Çmimi bazë:</strong>{" "}
-                    {searchResult.price_per_leg.toFixed(2)} € / pasagjer
-                    (një drejtim)
-                  </li>
-                  <li>
-                    <strong>Totali:</strong>{" "}
-                    {searchResult.total_price.toFixed(2)} €
-                  </li>
-                </ul>
-              </>
-            )}
-          </section>
+            </div>
+          </div>
         )}
 
-        {/* REZULTATI I REZERVIMIT REAL */}
-        {reservationResult && (
+        {/* --------------- FAQJA 2: REZULTATET --------------- */}
+        {view === "results" && searchResult && (
+          <>
+            {/* Kthehu mbrapa */}
+            <button
+              type="button"
+              className="search-button"
+              onClick={() => setView("search")}
+              style={{ marginBottom: "20px" }}
+            >
+              ← Back to search
+            </button>
+
+            {/* REZULTATI I KËRKIMIT */}
+            {searchResult && (
   <section className="result-card">
-    <h2>Rezervimi i biletave</h2>
+    {searchResult.error === "route-not-found" ? (
+      <p className="result-error">
+        No valid route was found for this direction. Please choose another
+        From / To combination.
+      </p>
+    ) : (
+      <>
+        <h2>Search result</h2>
+        <ul className="result-details">
+          <li>
+            <strong>Route:</strong> {searchResult.from} → {searchResult.to}
+          </li>
+          <li>
+            <strong>Trip type:</strong>{" "}
+            {searchResult.trip_type === "round-trip"
+              ? "Round trip"
+              : "One way"}
+          </li>
+          <li>
+            <strong>Departure date:</strong> {searchResult.departureDate}
+          </li>
+          {searchResult.trip_type === "round-trip" &&
+            searchResult.returnDate && (
+              <li>
+                <strong>Return date:</strong> {searchResult.returnDate}
+              </li>
+            )}
+          <li>
+            <strong>Passengers:</strong> {searchResult.passengers}
+          </li>
+          <li>
+            <strong>Base price:</strong>{" "}
+            {searchResult.price_per_leg.toFixed(2)} € / passenger (one way)
+          </li>
+          <li>
+            <strong>Total:</strong>{" "}
+            {searchResult.total_price.toFixed(2)} €
+          </li>
+        </ul>
+
+        <button
+          type="button"
+          className="search-button reserve-button"
+          onClick={handleReserve}
+          disabled={isReserving}
+          style={{ marginTop: "16px" }}
+        >
+          {isReserving ? "Reserving..." : "Reserve tickets"}
+        </button>
+      </>
+    )}
+  </section>
+)}
+
+          </>
+        )}
+
+        {/* --------------- FAQJA 3: PAGESA / REZERVIMI --------------- */}
+        {/* Ticket reservation */}
+        {view === "payment" && reservationResult && (
+          <section className="result-card">
+
+    <h2>Ticket reservation</h2>
+
     <p>
-      U rezervuan{" "}
-      <strong>{reservationResult.count}</strong> bileta
-      për këtë udhëtim.
+      You reserved <strong>{reservationResult.count}</strong> ticket(s)
     </p>
+
     <ul className="result-details">
       {reservationResult.tickets.map((t, idx) => (
         <li key={idx}>
-          Vendi: <strong>{t.seat_no}</strong>, Çmimi:{" "}
-          <strong>{t.price.toFixed(2)} €</strong>
+          Seat: {t.seat_no} — {t.price} €  
           <br />
           Token: <code>{t.token}</code>
         </li>
       ))}
     </ul>
 
-    {/* Butoni për konfirmim pagese */}
-    <button
-      type="button"
-      className="search-button reserve-button"
-      onClick={handleConfirmPayment}
-      disabled={isPaying}
-    >
-      {isPaying ? "Duke konfirmuar..." : "Konfirmo pagesën"}
-    </button>
 
-    {/* Mesazhet e pagesës */}
-    {paymentStatus && (
-      <p style={{ marginTop: "10px", color: "green" }}>{paymentStatus}</p>
-    )}
-    {paymentError && (
-      <p style={{ marginTop: "10px", color: "red" }}>{paymentError}</p>
-    )}
-  </section>
-)}
 
+            {/* Check ticket */}
+<section className="result-card">
+  <h3>Check ticket</h3>
+  <input
+    value={validateToken}
+    onChange={(e) => setValidateToken(e.target.value)}
+    placeholder="Ticket token"
+  />
+
+  <button onClick={handleValidateTicket}>Check</button>
+
+  {validateError && <p style={{ color: "red" }}>{validateError}</p>}
+  {validateResult && (
+    <ul className="result-details">
+      <li>Status: {validateResult.status}</li>
+      <li>Route: {validateResult.from} → {validateResult.to}</li>
+      <li>Departure: {validateResult.departure_at}</li>
+      <li>Seat: {validateResult.seat_no}</li>
+      <li>Price: {validateResult.price} €</li>
+    </ul>
+  )}
+</section>
+
+
+            {/* Confirm payment */}
+<button
+  className="search-button reserve-button"
+  onClick={handleConfirmPayment}
+  disabled={isPaying}
+  style={{ marginTop: "12px" }}
+>
+  {isPaying ? "Confirming..." : "Confirm payment"}
+</button>
+
+
+            {paymentStatus && (
+              <p style={{ color: "green", marginTop: "8px" }}>
+                {paymentStatus}
+              </p>
+            )}
+            {paymentError && (
+              <p style={{ color: "red", marginTop: "8px" }}>{paymentError}</p>
+            )}
+
+            {/* Opsion kthehu te rezultatet */}
+            <button
+              type="button"
+              className="search-button"
+              onClick={() => setView("results")}
+              style={{ marginTop: "16px" }}
+            >
+              ← Back to results
+            </button>
+          </section>
+        )}
       </main>
     </div>
   );
 }
 
 export default App;
-

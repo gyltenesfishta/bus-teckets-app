@@ -1,4 +1,4 @@
-/* Reset i lehtë */
+/* ===== Reset i lehtë ===== */
 *,
 *::before,
 *::after {
@@ -8,252 +8,592 @@
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f5f7fa;
-  color: #222;
+  background: #f3f4f6;
+  color: #111827;
 }
 
-/* Wrappers kryesorë */
-.app {
+/* ===== Kontejneri kryesor nga App.jsx: <div className="app-root"> ===== */
+.app-root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: #f3f4f6;
 }
 
-/* Hero si te FlixBus (zë gjysmën e sipërme) */
+/* ===== HERO – shiriti jeshil lart ===== */
 .hero {
+  /* e bën sfondin jeshil full-width në krejt ekranin */
   background: linear-gradient(135deg, #0bb44b, #18c95e);
-  color: #fff;
-  padding: 78px 0 72px;
+  color: #ffffff;
+  padding: 64px 0 96px;
+
+ 
+  width: 120vw;
+  margin-left: calc(30% - 30vw);
 }
 
-.hero-inner {
-  max-width: 1100px;
+.hero h1,
+.hero p {
+  width: 100%;
+  max-width: 1100px;    
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 100px; 
+  margin-left: 270px;     
+  text-align: left;    
 }
+
 
 .hero h1 {
-  margin: 0 0 8px;
-  font-size: 36px;
+  margin-bottom: 8px;
+  font-size: 2.4rem;
   font-weight: 700;
 }
 
 .hero p {
-  margin: 0;
-  font-size: 16px;
-  opacity: 0.9;
+  font-size: 1rem;
+  opacity: 0.95;
 }
 
-/* Zona e kartës */
-.main {
+/* ===== Seksioni poshtë hero-s ku renditet forma + rezultatet ===== */
+/* <main className="search-section"> */
+.search-section {
+  flex: 1;
   max-width: 1100px;
-  margin: -56px auto 40px; /* ngrit kartën pak mbi hero */
-  padding: 0 24px;
+  margin: -64px auto 40px; /* karta “ngjitet” tek hero si te FlixBus */
+  padding: 0 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-/* Karta e kërkimit */
+/* ===== Karta kryesore e kërkimit – .search-card ===== */
 .search-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.08);
-  padding: 20px 24px 24px;
-}
-.result-card {
-  max-width: 900px;
-  margin: 24px auto 0;
-  padding: 20px 24px;
-  border-radius: 16px;
   background: #ffffff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-  font-size: 0.95rem;
-  line-height: 1.6;
+  border-radius: 18px;
+  padding: 24px 28px 20px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+  width: 100%;
 }
 
-.result-card h2 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 1.2rem;
-}
-
-
-/* One way / Round trip */
+/* ===== One Way / Round Trip – .trip-type-row & .radio ===== */
 .trip-type-row {
   display: flex;
+  align-items: center;
   gap: 16px;
   margin-bottom: 16px;
 }
 
-.radio-pill {
+.radio {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: #f3f5f7;
-  border-radius: 999px;
-  padding: 6px 16px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
 }
 
-.radio-pill input {
-  accent-color: #06b640;
+.radio input {
+  accent-color: #10b981;
 }
 
-.radio-pill input:checked + span,
-.radio-pill input:focus-visible + span {
-  font-weight: 600;
-}
+/* ===== Passengers: Adults & Children ===== */
 
-.radio-pill:hover {
-  background: #e5f7ea;
-}
-
-/* Forma horizontale */
-.search-form {
-  display: grid;
-  grid-template-columns: 2fr 2fr 1.5fr 1.5fr 1.2fr auto;
+.passengers-field .passenger-types {
+  display: flex;
   gap: 12px;
-  align-items: flex-end;
-  margin-bottom: 16px;
 }
 
-/* Fushat */
-.field {
+.passenger-type {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
+  font-size: 0.8rem;
 }
 
-.field label {
+.passenger-label {
   font-weight: 500;
-  color: #555;
+  color: #4b5563;
+  margin-bottom: 4px;
 }
 
-.field select,
-.field input {
-  border-radius: 10px;
-  border: 1px solid #d2d6dd;
+.passenger-type input {
   padding: 8px 10px;
-  font-size: 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
   outline: none;
-  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.field select:focus,
-.field input:focus {
-  border-color: #07b74a;
-  box-shadow: 0 0 0 2px rgba(7, 183, 74, 0.2);
+.passenger-type input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.35);
 }
 
-/* Butoni i swap From/To */
-.field-with-button {
+@media (max-width: 768px) {
+  .passengers-field .passenger-types {
+    flex-direction: column;
+  }
+}
+
+
+/* ===== Forma e kërkimit – .search-form, .row, .field ===== */
+
+.search-form {
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.row.row-bottom {
+  justify-content: flex-end;
+}
+
+.field {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
-.swap-btn {
-  border: 1px solid #d2d6dd;
-  border-radius: 999px;
-  padding: 0 10px;
-  font-size: 16px;
-  background: #fff;
+.field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.field input,
+.field select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background: #ffffff;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.35);
+}
+
+/* ===== Passengers dropdown si te FlixBus ===== */
+
+.passengers-dropdown {
+  position: relative;
+}
+
+/* Butoni kryesor që tregon "1 Adult, 2 Children" */
+.passengers-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s, border-color 0.2s;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s;
+}
+
+.passengers-toggle:hover {
+  background: #f9fafb;
+  border-color: #10b981;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.25);
+}
+
+.passengers-toggle .chevron {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Menuja që hapet poshtë butonit */
+.passengers-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  width: 260px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+  padding: 12px 16px;
+  z-index: 20;
+}
+
+/* Çdo rresht (Adults, Children) */
+.passengers-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.passengers-row:last-child {
+  border-bottom: none;
+}
+
+.passengers-row-text .title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.passengers-row-text .subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Counter me – [vlera] +  */
+.passengers-counter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.counter-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s;
+}
+
+.counter-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.counter-btn:active {
+  transform: translateY(1px);
+}
+
+.counter-value {
+  min-width: 18px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Mobile: menuja mos me dalë shumë e majtë */
+@media (max-width: 768px) {
+  .passengers-menu {
+    right: auto;
+    left: 0;
+  }
+}
+
+
+/* ===== Butoni i ndërrimit të qyteteve – .swap-btn ===== */
+.swap-btn {
+  align-self: flex-end;
+  margin-top: 24px;
+  border-radius: 9999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
 }
 
 .swap-btn:hover {
-  background: #e5f7ea;
-  border-color: #07b74a;
+  background: #f3f4f6;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
 }
 
 .swap-btn:active {
-  transform: scale(0.96);
-}
-
-/* Butoni Search */
-.field-button {
-  display: flex;
-  align-items: flex-end;
-}
-
-.primary-btn {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 28px;
-  background: #07b74a;
-  color: #fff;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-}
-
-.primary-btn:hover {
-  background: #05a843;
-  box-shadow: 0 10px 20px rgba(7, 183, 74, 0.35);
-}
-
-.primary-btn:active {
   transform: translateY(1px);
   box-shadow: none;
 }
 
-.reserve-button {
-  margin-left: 12px;
-  background-color: #ff7a00;
+
+.city-row {
+  background: #f9fafb;
+  border-radius: 9999px;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
+  align-items: center;
 }
 
-.reserve-button:hover {
+/* Fushat brenda From / To */
+.city-row .field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Label-et "From" / "To" më të vogla sipër */
+.city-row .field label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+/* Select-ët brenda From / To */
+.city-row .field select {
+  border: none;
+  background: transparent;
+  padding: 4px 8px 2px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  outline: none;
+}
+
+/* Heq border-in e zakonshëm kur fokusohet, e bëjmë më të butë */
+.city-row .field select:focus {
+  box-shadow: none;
+}
+
+/* Butoni i ndërrimit mes qyteteve në mes */
+.city-row .swap-btn {
+  width: 34px;
+  height: 34px;
+  margin: 0 6px 0 6px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+/* ===  DATE + RETURN + PASSENGERS pill  === */
+
+.date-passenger-row {
+  display: flex;
+  gap: 14px;
+  background: #f9fafb;
+  padding: 12px 18px;
+  border-radius: 9999px;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  align-items: center;
+  margin-top: 15px;
+}
+
+.date-passenger-row .field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.date-passenger-row label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+/* input-at e datave */
+.date-passenger-row input[type="date"] {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.95rem;
+}
+
+/* Butoni i passengers */
+.date-passenger-row .passengers-trigger button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.date-passenger-row .passengers-trigger button:hover {
+  background: #f3f4f6;
+}
+
+
+.city-row .swap-btn:hover {
+  background: #f3f4f6;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.16);
+}
+
+.city-row .swap-btn:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+@media (max-width: 768px) {
+  .date-passenger-row {
+    flex-direction: column;
+    border-radius: 20px;
+  }
+}
+
+
+/* Mobile: kur bie në disa rreshta, mos duket keq */
+@media (max-width: 768px) {
+  .city-row {
+    border-radius: 18px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .city-row .swap-btn {
+    align-self: center;
+  }
+}
+
+
+/* ===== Butonat – .search-button & .reserve-button ===== */
+.search-button {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45);
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+
+.search-button:hover {
+  background-color: #0f9f73;
+  box-shadow: 0 12px 28px rgba(16, 185, 129, 0.5);
+}
+
+.search-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+}
+
+/* Rezervo biletat – përdor klasën ekzistuese search-button reserve-button */
+.search-button.reserve-button {
+  margin-left: 12px;
+  background-color: #ff7a00;
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.5);
+}
+
+.search-button.reserve-button:hover {
   background-color: #e56c00;
 }
 
-/* Summary i çmimit */
+/* ===== Summary i çmimit – .price-summary ===== */
 .price-summary {
-  font-size: 14px;
-  color: #333;
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: #374151;
 }
 
-.price-summary p {
-  margin: 2px 0;
+/* ===== Rezultati & payment – .result-card, .result-details, .result-error ===== */
+.result-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 20px 24px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+  font-size: 0.95rem;
 }
 
-.price-summary strong {
+.result-card + .result-card {
+  margin-top: 18px;
+}
+
+.result-card h2,
+.result-card h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
   font-weight: 600;
+  color: #111827;
 }
 
-/* Responsive – kur ekrani është i ngushtë (telefon) */
-@media (max-width: 900px) {
-  .search-form {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .field-button {
-    grid-column: 1 / -1;
-    justify-content: flex-end;
-  }
+.result-details {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
 }
 
-@media (max-width: 600px) {
-  .hero-inner h1 {
-    font-size: 28px;
+.result-details li {
+  margin-bottom: 6px;
+}
+
+.result-error {
+  color: #b91c1c;
+}
+
+/* Inputi i token-it brenda result-card */
+.result-card input[type="text"],
+.result-card input:not([type]) {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  margin-right: 8px;
+  font-size: 0.9rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .hero {
+    padding: 40px 0 80px;
+  }
+
+  .hero h1 {
+    font-size: 1.8rem;
+    text-align: center;
+  }
+
+  .hero p {
+    text-align: center;
+  }
+
+  .search-section {
+    margin-top: -56px;
+    padding: 0 16px 32px;
   }
 
   .search-card {
-    padding: 16px 16px 20px;
+    padding: 18px 18px 20px;
   }
 
-  .search-form {
-    grid-template-columns: 1fr;
+  .row {
+    flex-direction: column;
   }
 
-  .field-button {
-    justify-content: stretch;
+  .row.row-bottom {
+    justify-content: center;
   }
 
-  .primary-btn {
+  .search-button {
     width: 100%;
     text-align: center;
   }
 }
+
+
 

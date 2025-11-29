@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+import sqlite3
 from flask_cors import CORS
 from db import get_connection
 import hmac
@@ -10,15 +11,17 @@ app = Flask(__name__)
 CORS(app)
 
 
+# ---------------------------------------------------
+# 1) REZERVIMI I BILETAVE /api/tickets (POST)
+# ---------------------------------------------------
 @app.route("/api/tickets", methods=["POST"])
 def api_tickets():
     data = request.json or {}
 
-    # nga frontendi po vjen route_id, por emri i fushës është "trip_id"
+    # nga frontendi po vjen route_id, por fusha quhet "trip_id"
     route_id = data.get("trip_id")
     count = data.get("count", 1)
 
-    # validime bazike
     if not route_id:
         return jsonify({"error": "trip_id is required"}), 400
 
@@ -31,7 +34,7 @@ def api_tickets():
         return jsonify({"error": "count must be >= 1"}), 400
 
     with get_connection() as conn:
-        # Gjejmë një trip për këtë route_id
+        # zgjedhim njërin trip për këtë route_id
         trip_row = conn.execute(
             """
             SELECT id AS trip_id, total_seats, base_price
@@ -50,24 +53,21 @@ def api_tickets():
         total_seats = trip_row["total_seats"]
         base_price = trip_row["base_price"]
 
-        # Vendet e zëna aktualisht për këtë trip
+        # vendet e zëna aktualisht për këtë trip
         taken_rows = conn.execute(
             "SELECT seat_no FROM tickets WHERE trip_id = ? ORDER BY seat_no",
             (trip_id,),
         ).fetchall()
         taken_seats = {row["seat_no"] for row in taken_rows}
 
-        # Gjej një bllok me 'count' ulëse njera pas tjetrës,
-        # sa më afër mesit të autobusit
+        # gjejmë një bllok me 'count' ulëse njera pas tjetrës, sa më afër mesit
         middle = total_seats / 2.0
         best_block = None
         best_distance = None
 
-        # start nga 1 deri te (total_seats - count + 1)
         for start in range(1, total_seats - count + 2):
             block = list(range(start, start + count))
 
-            # nëse ndonjë prej këtyre ulëseve është e zënë, kalojmë te tjetra
             if any(seat in taken_seats for seat in block):
                 continue
 
@@ -85,7 +85,6 @@ def api_tickets():
 
         try:
             for i, seat_no in enumerate(best_block):
-                # sa bileta janë shitur deri tani (për llogaritje të occupancy)
                 sold_count = len(taken_seats) + i
                 occupancy = sold_count / total_seats if total_seats > 0 else 0
 
@@ -99,11 +98,15 @@ def api_tickets():
 
                 price = round(base_price * factor, 2)
 
-                # HMAC token për këtë biletë
+                # HMAC token
                 message = f"{trip_id}:{seat_no}".encode("utf-8")
                 token = hmac.new(SECRET_KEY, message, hashlib.sha256).hexdigest()
 
-                # Ruaj biletën në DB
+                # LOG – për debug
+                print("[INSERT TICKET] trip_id=", trip_id,
+                      "seat_no=", seat_no,
+                      "token=", token)
+
                 conn.execute(
                     """
                     INSERT INTO tickets (trip_id, seat_no, price, status, token)
@@ -133,17 +136,20 @@ def api_tickets():
                 "tickets": tickets,
             }
         )
+
+
+# ---------------------------------------------------
+# 2) KONFIRMIMI I PAGESËS /api/tickets/confirm (POST)
+# ---------------------------------------------------
 @app.route("/api/tickets/confirm", methods=["POST"])
 def api_confirm_tickets():
     data = request.json or {}
     tokens = data.get("tokens")
 
-    # tokens duhet të jetë listë me së paku 1 token
     if not tokens or not isinstance(tokens, list):
         return jsonify({"error": "tokens list is required"}), 400
 
     with get_connection() as conn:
-        # përgatisim placeholderët ?,?,?... sipas numrit të tokeneve
         placeholders = ",".join(["?"] * len(tokens))
 
         rows = conn.execute(
@@ -158,7 +164,6 @@ def api_confirm_tickets():
         if not rows:
             return jsonify({"error": "No tickets found for provided tokens"}), 404
 
-        # ndajmë cilat janë already paid / reserved
         already_paid = [r["token"] for r in rows if r["status"] == "paid"]
         to_pay_ids = [r["id"] for r in rows if r["status"] == "reserved"]
 
@@ -176,6 +181,48 @@ def api_confirm_tickets():
             "total_found": len(rows),
             "tokens": tokens,
         })
+
+
+# ---------------------------------------------------
+# 3) KONTROLLI I BILETËS ME QUERY /api/ticket?token=...
+#    (KJO ËSHTË AJO QË E PËRDOR FRONTEND-i YT)
+# ---------------------------------------------------
+@app.get("/api/tickets/<token>")
+def get_ticket(token):
+    conn = sqlite3.connect("app.db")
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    row = cur.execute(
+        """
+        SELECT 
+            t.token,
+            t.status,
+            t.seat_no,
+            t.price,
+            tr.departure_at,
+            r.origin,
+            r.destination
+        FROM tickets t
+        JOIN trips tr ON t.trip_id = tr.id
+        JOIN routes r ON tr.route_id = r.id
+        WHERE t.token = ?
+        """,
+        (token,)
+    ).fetchone()
+
+    if row is None:
+        return jsonify({"error": "Bileta nuk u gjet."}), 404
+
+    return jsonify({
+        "token": row["token"],
+        "status": row["status"],
+        "seat_no": row["seat_no"],
+        "price": row["price"],
+        "departure_at": row["departure_at"],
+        "from": row["origin"],
+        "to": row["destination"]
+    })
 
 
 

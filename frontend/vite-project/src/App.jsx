@@ -1,17 +1,21 @@
 import { useState, useMemo } from "react";
 import "./App.css";
+import SearchResults from "./SearchResults";
+import { QRCodeCanvas } from "qrcode.react";
+
+
 
 // Linjat tona me çmimet bazë (për një drejtim)
 const ROUTES = [
-  { id: 1, from: "Prishtinë", to: "Podujevë", price: 1.5 },
-  { id: 2, from: "Prishtinë", to: "Fushë Kosovë", price: 1.5 },
-  { id: 3, from: "Prishtinë", to: "Lipjan", price: 1.5 },
-  { id: 4, from: "Prishtinë", to: "Pejë", price: 4.5 },
-  { id: 5, from: "Prishtinë", to: "Gjilan", price: 4.0 },
-  { id: 6, from: "Prishtinë", to: "Ferizaj", price: 4.0 },
-  { id: 7, from: "Prishtinë", to: "Prizren", price: 5.0 },
-  { id: 8, from: "Prishtinë", to: "Deçan", price: 5.0 },
-  { id: 9, from: "Prishtinë", to: "Malishevë", price: 3.5 },
+  { id: 1, from: "Pristina", to: "Podujevo", price: 1.5 },
+  { id: 2, from: "Pristina", to: "Fushe Kosove", price: 1.5 },
+  { id: 3, from: "Pristina", to: "Lipjan", price: 1.5 },
+  { id: 4, from: "Pristina", to: "Peja", price: 4.5 },
+  { id: 5, from: "Pristina", to: "Gjilan", price: 4.0 },
+  { id: 6, from: "Pristina", to: "Ferizaj", price: 4.0 },
+  { id: 7, from: "Pristina", to: "Prizren", price: 5.0 },
+  { id: 8, from: "Pristina", to: "Deçan", price: 5.0 },
+  { id: 9, from: "Pristina", to: "Malisheva", price: 3.5 },
 ];
 
 // çmimi për një drejtim, pavarësisht kahjes
@@ -40,7 +44,7 @@ function getRouteId(from, to) {
 
 function App() {
   const [tripType, setTripType] = useState("round-trip"); // "one-way" / "round-trip"
-  const [from, setFrom] = useState("Prishtinë");
+  const [from, setFrom] = useState("Pristina");
   const [to, setTo] = useState("Gjilan");
 
   const todayISO = new Date().toISOString().slice(0, 10);
@@ -75,6 +79,7 @@ function App() {
   const [validateToken, setValidateToken] = useState("");
   const [validateResult, setValidateResult] = useState(null);
   const [validateError, setValidateError] = useState(null);
+
 
   const isRoundTrip = tripType === "round-trip";
 
@@ -150,7 +155,7 @@ const handleChildrenChange = (e) => {
       setSearchResult({
         error: "route-not-found",
       });
-      setView("results");
+      setView("trips");
       return;
     }
 
@@ -174,7 +179,7 @@ const handleChildrenChange = (e) => {
     setReserveError(null);
     setPaymentStatus(null);
     setPaymentError(null);
-    setView("results");
+    setView("trips");
   };
 
   // Kur shtypet "Rezervo biletat" – thërrasim /api/tickets
@@ -334,7 +339,7 @@ const handleChildrenChange = (e) => {
                     value={from}
                     onChange={(e) => setFrom(e.target.value)}
                   >
-                    <option value="Prishtinë">Prishtinë</option>
+                    <option value="Pristina">Pristina</option>
                   </select>
                 </div>
               
@@ -479,6 +484,149 @@ const handleChildrenChange = (e) => {
             </div>
           </div>
         )}
+
+
+{/* --------------- FAQJA 2: LISTA E ORAREVE --------------- */}
+{view === "trips" && searchResult && (
+  <>
+   <button
+      type="button"
+      className="search-button"
+      onClick={() => setView("search")}
+      style={{ marginBottom: "16px" }}
+    >
+      ← Back to search
+    </button>
+    {/* Kartela lart me From / To / Dates / Passengers – PA butonin Search */}
+    <div className="search-card">
+      {/* Tipi i udhëtimit (njësoj si në faqen e parë) */}
+      <div className="trip-type-row">
+        <label className="radio">
+          <input
+            type="radio"
+            name="tripTypeTrips"
+            value="one-way"
+            checked={tripType === "one-way"}
+            onChange={() => setTripType("one-way")}
+          />
+          <span>One Way</span>
+        </label>
+
+        <label className="radio">
+          <input
+            type="radio"
+            name="tripTypeTrips"
+            value="round-trip"
+            checked={tripType === "round-trip"}
+            onChange={() => setTripType("round-trip")}
+          />
+          <span>Round Trip</span>
+        </label>
+      </div>
+
+      {/* Forma – por vetëm për shfaqje, pa onSubmit dhe pa buton Search */}
+      <form className="search-form">
+        {/* From & To */}
+        <div className="row city-row">
+          <div className="field">
+            <label>From</label>
+            <select
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              disabled
+            >
+              <option value="Pristina">Pristina</option>
+            </select>
+          </div>
+
+          <button
+            type="button"
+            className="swap-btn"
+            onClick={handleSwapCities}
+            disabled
+          >
+            ⇄
+          </button>
+
+          <div className="field">
+            <label>To</label>
+            <select
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              disabled
+            >
+              {ROUTES.map((r) => (
+                <option key={r.to} value={r.to}>
+                  {r.to}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Dates + Passengers */}
+        <div className="row date-passenger-row">
+          <div className="field">
+            <label>Departure</label>
+            <input
+              type="date"
+              value={departureDate}
+              onChange={(e) => setDepartureDate(e.target.value)}
+              min={todayISO}
+              disabled
+            />
+          </div>
+
+          <div className="field">
+            <label>Return</label>
+            <input
+              type="date"
+              value={returnDate}
+              onChange={(e) => setReturnDate(e.target.value)}
+              min={departureDate}
+              disabled={tripType !== "round-trip"}
+            />
+          </div>
+
+          <div className="field passengers-dropdown">
+            <label>Passengers</label>
+
+            <button
+              type="button"
+              className="passengers-toggle"
+              disabled
+            >
+              <span>{passengerLabel}</span>
+              <span className="chevron">▾</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    {/* Lista e orareve poshtë formës */}
+    <SearchResults
+      searchParams={{
+        from,
+        to,
+        date: departureDate,
+        passengers,
+      }}
+      onSelectTrip={({ route, trip }) => {
+        // ruajmë udhëtimin e zgjedhur dhe kalojmë në faqen tjetër
+        setSearchResult((prev) => ({
+          ...prev,
+          selectedRouteId: route.id,
+          selectedTripId: trip.id,
+        }));
+        setView("results");
+      }}
+    />
+  </>
+)}
+
+
+
 
         {/* --------------- FAQJA 2: REZULTATET --------------- */}
         {view === "results" && searchResult && (

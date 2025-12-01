@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import "./App.css";
 import SearchResults from "./SearchResults";
 import { QRCodeCanvas } from "qrcode.react";
+import { QrReader } from "react-qr-reader";
+
 
 
 
@@ -46,6 +48,8 @@ function App() {
   const [tripType, setTripType] = useState("round-trip"); // "one-way" / "round-trip"
   const [from, setFrom] = useState("Pristina");
   const [to, setTo] = useState("Gjilan");
+  const [email, setEmail] = useState("");
+
 
   const todayISO = new Date().toISOString().slice(0, 10);
   const [departureDate, setDepartureDate] = useState(todayISO);
@@ -79,6 +83,9 @@ function App() {
   const [validateToken, setValidateToken] = useState("");
   const [validateResult, setValidateResult] = useState(null);
   const [validateError, setValidateError] = useState(null);
+
+  const [scanMode, setScanMode] = useState(false);
+
 
 
   const isRoundTrip = tripType === "round-trip";
@@ -367,6 +374,10 @@ const handleChildrenChange = (e) => {
                 </div>
               </div>
 
+              
+
+
+
               {/* Dates + Passengers */}
               <div className="row date-passenger-row">
                 <div className="field">
@@ -403,7 +414,6 @@ const handleChildrenChange = (e) => {
     <span className="chevron">▾</span>
   </button>
 
-  {/* Menuja e brendshme – si te FlixBus */}
   {isPassengersOpen && (
     <div className="passengers-menu">
       {/* Adults */}
@@ -458,9 +468,10 @@ const handleChildrenChange = (e) => {
     </div>
   )}
 </div>
-
-
               </div>
+
+
+
 
               <div className="row row-bottom">
                 <button type="submit" className="search-button">
@@ -640,6 +651,17 @@ const handleChildrenChange = (e) => {
             >
               ← Back to search
             </button>
+            <button
+  type="button"
+  className="conductor-button"
+  onClick={() => setView("conductor")}
+>
+  Conductor view
+</button>
+
+
+ 
+
 
             {/* REZULTATI I KËRKIMIT */}
             {searchResult && (
@@ -701,6 +723,90 @@ const handleChildrenChange = (e) => {
           </>
         )}
 
+
+        {view === "conductor" && (
+  <div style={{ textAlign: "center", marginTop: "40px" }}>
+    <h2>Conductor panel</h2>
+    <p>Scan ticket or enter token manually:</p>
+
+    {/* Buton për ndez/fik kamerën */}
+    <button
+      type="button"
+      className="conductor-button"
+      style={{ marginBottom: "20px" }}
+      onClick={() => setScanMode((prev) => !prev)}
+    >
+      {scanMode ? "Close camera" : "Open camera scanner"}
+    </button>
+
+    {/* KËTU ËSHTË SKANERI I VËRTETË */}
+    {scanMode && (
+      <div style={{ width: "280px", margin: "0 auto 24px" }}>
+        <QrReader
+          constraints={{ facingMode: "environment" }}
+          onResult={(result, error) => {
+            if (!!result) {
+              const text = result?.text || "";
+              console.log("SCANNED:", text); // SHIKOJE NË CONSOLE
+              setValidateToken(text);
+            }
+            if (error) {
+              // vetëm për debug nëse don
+              // console.log(error);
+            }
+          }}
+          videoStyle={{ width: "100%" }}
+        />
+        <p style={{ fontSize: "14px", marginTop: "6px" }}>
+          Point the camera at the QR code. When the token appears below, click "Check".
+        </p>
+      </div>
+    )}
+
+    {/* Forma për check token */}
+    <section
+      className="result-card"
+      style={{ maxWidth: "500px", margin: "0 auto" }}
+    >
+      <h3>Check ticket</h3>
+
+      <input
+        value={validateToken}
+        onChange={(e) => setValidateToken(e.target.value)}
+        placeholder="Ticket token"
+      />
+
+      <button onClick={handleValidateTicket}>Check</button>
+
+      {validateError && (
+        <p style={{ color: "red", marginTop: "8px" }}>{validateError}</p>
+      )}
+
+      {validateResult && (
+        <ul className="result-details">
+          <li>Status: {validateResult.status}</li>
+          <li>
+            Route: {validateResult.from} → {validateResult.to}
+          </li>
+          <li>Departure: {validateResult.departure_at}</li>
+          <li>Seat: {validateResult.seat_no}</li>
+          <li>Price: {validateResult.price} €</li>
+        </ul>
+      )}
+    </section>
+
+    <button
+      className="search-button"
+      style={{ marginTop: "20px" }}
+      onClick={() => setView("results")}
+    >
+      ← Back to results
+    </button>
+  </div>
+)}
+
+
+
         {/* --------------- FAQJA 3: PAGESA / REZERVIMI --------------- */}
         {/* Ticket reservation */}
         {view === "payment" && reservationResult && (
@@ -714,38 +820,21 @@ const handleChildrenChange = (e) => {
 
     <ul className="result-details">
       {reservationResult.tickets.map((t, idx) => (
-        <li key={idx}>
-          Seat: {t.seat_no} — {t.price} €  
-          <br />
-          Token: <code>{t.token}</code>
-        </li>
+        <li key={idx} style={{ marginBottom: "20px" }}>
+  Seat: {t.seat_no} — {t.price} €
+  <br />
+  
+
+  {/* QR Code */}
+  <div style={{ marginTop: "10px" }}>
+    <QRCodeCanvas value={t.token} size={120} />
+  </div>
+</li>
+
       ))}
     </ul>
 
 
-
-            {/* Check ticket */}
-<section className="result-card">
-  <h3>Check ticket</h3>
-  <input
-    value={validateToken}
-    onChange={(e) => setValidateToken(e.target.value)}
-    placeholder="Ticket token"
-  />
-
-  <button onClick={handleValidateTicket}>Check</button>
-
-  {validateError && <p style={{ color: "red" }}>{validateError}</p>}
-  {validateResult && (
-    <ul className="result-details">
-      <li>Status: {validateResult.status}</li>
-      <li>Route: {validateResult.from} → {validateResult.to}</li>
-      <li>Departure: {validateResult.departure_at}</li>
-      <li>Seat: {validateResult.seat_no}</li>
-      <li>Price: {validateResult.price} €</li>
-    </ul>
-  )}
-</section>
 
 
             {/* Confirm payment */}

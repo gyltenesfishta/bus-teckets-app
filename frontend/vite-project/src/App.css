@@ -505,6 +505,22 @@ body {
   background-color: #e56c00;
 }
 
+.conductor-button {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.conductor-button:hover {
+  background: #e2e2e2;
+}
+
+
 /* ===== Summary i çmimit – .price-summary ===== */
 .price-summary {
   margin-top: 12px;

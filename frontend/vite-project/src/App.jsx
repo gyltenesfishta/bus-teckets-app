@@ -308,6 +308,8 @@ const handleChildrenChange = (e) => {
         </p>
       </header>
 
+      
+
       <main className="search-section">
         {/* --------------- FAQJA 1: KËRKIMI --------------- */}
         {view === "search" && (
@@ -375,10 +377,8 @@ const handleChildrenChange = (e) => {
                     ))}
                   </select>
                 </div>
-              </div>
-
               
-<div className="row city-row">
+                  <div className="field">
     <label>Email</label>
     <input
         type="email"
@@ -388,8 +388,10 @@ const handleChildrenChange = (e) => {
         required
     />
 </div>
+</div>
+              
 
-
+              
               {/* Dates + Passengers */}
               <div className="row date-passenger-row">
                 <div className="field">
@@ -448,7 +450,7 @@ const handleChildrenChange = (e) => {
             onClick={handleAdultsIncrement}
             className="counter-btn"
           >
-            +
+            
           </button>
         </div>
       </div>
@@ -465,7 +467,7 @@ const handleChildrenChange = (e) => {
             onClick={handleChildrenDecrement}
             className="counter-btn"
           >
-            –
+            
           </button>
           <span className="counter-value">{children}</span>
           <button
@@ -473,7 +475,7 @@ const handleChildrenChange = (e) => {
             onClick={handleChildrenIncrement}
             className="counter-btn"
           >
-            +
+            
           </button>
         </div>
       </div>
@@ -520,6 +522,13 @@ const handleChildrenChange = (e) => {
     >
       ← Back to search
     </button>
+    <button
+  type="button"
+  className="conductor-button"
+  onClick={() => setView("conductor")}
+>
+  Conductor view
+</button>
     {/* Kartela lart me From / To / Dates / Passengers – PA butonin Search */}
     <div className="search-card">
       {/* Tipi i udhëtimit (njësoj si në faqen e parë) */}
@@ -663,13 +672,7 @@ const handleChildrenChange = (e) => {
             >
               ← Back to search
             </button>
-            <button
-  type="button"
-  className="conductor-button"
-  onClick={() => setView("conductor")}
->
-  Conductor view
-</button>
+            
 
 
  
@@ -821,10 +824,10 @@ const handleChildrenChange = (e) => {
     <button
       className="search-button"
       style={{ marginTop: "20px" }}
-      onClick={() => setView("results")}
+      onClick={() => setView("search")}
     >
-      ← Back to results
-    </button>
+      ← Back to search
+         </button>
   </div>
 )}
 

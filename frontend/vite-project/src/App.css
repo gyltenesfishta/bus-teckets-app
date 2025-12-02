@@ -505,20 +505,25 @@ body {
   background-color: #e56c00;
 }
 
-.conductor-button {
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ccc;
-  padding: 8px 18px;
-  border-radius: 8px;
+.conductor-view-btn {
+  width: 240px;
+  margin: 10px auto 25px auto;
+  display: block;
+  text-align: center;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 12px 20px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 14px;
-  margin-bottom: 20px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: 0.2s;
 }
 
-.conductor-button:hover {
-  background: #e2e2e2;
+.conductor-view-btn:hover {
+  background: #f3f3f3;
 }
+
 
 
 /* ===== Summary i çmimit – .price-summary ===== */

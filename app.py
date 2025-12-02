@@ -4,16 +4,28 @@ from flask_cors import CORS
 from db import get_connection
 import hmac
 import hashlib
+from flask_mail import Mail, Message
+import os
+import smtplib
+import qrcode
+from io import BytesIO
 
-SECRET_KEY = b"super-secret-key-change-this"
+
 
 app = Flask(__name__)
 CORS(app)
 
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = "gyltene.sfishta@gmail.com"
+app.config['MAIL_PASSWORD'] = "tishwsyryxeoovhm"   
+app.config['MAIL_DEFAULT_SENDER'] = "gyltene.sfishta@gmail.com"
 
-# ---------------------------------------------------
-# 1) REZERVIMI I BILETAVE /api/tickets (POST)
-# ---------------------------------------------------
+mail = Mail(app)
+
+SECRET_KEY = b"super-secret-key-change-this"
+
 @app.route("/api/tickets", methods=["POST"])
 def api_tickets():
     data = request.json or {}
@@ -21,6 +33,10 @@ def api_tickets():
     # nga frontendi po vjen route_id, por fusha quhet "trip_id"
     route_id = data.get("trip_id")
     count = data.get("count", 1)
+    email = data.get("email")
+
+    if not email:
+        return jsonify({"error": "email is required"}), 400
 
     if not route_id:
         return jsonify({"error": "trip_id is required"}), 400
@@ -102,11 +118,6 @@ def api_tickets():
                 message = f"{trip_id}:{seat_no}".encode("utf-8")
                 token = hmac.new(SECRET_KEY, message, hashlib.sha256).hexdigest()
 
-                # LOG – për debug
-                print("[INSERT TICKET] trip_id=", trip_id,
-                      "seat_no=", seat_no,
-                      "token=", token)
-
                 conn.execute(
                     """
                     INSERT INTO tickets (trip_id, seat_no, price, status, token)
@@ -129,13 +140,50 @@ def api_tickets():
             conn.rollback()
             return jsonify({"error": "Database error", "details": str(e)}), 500
 
-        return jsonify(
-            {
-                "trip_id": trip_id,
-                "count": len(tickets),
-                "tickets": tickets,
-            }
+    # ----------------- DËRGO EMAILIN KËTU, Brenda funksionit -----------------
+    try:
+        msg = Message(
+            subject="Your Bus Ticket Reservation",
+            recipients=[email],
         )
+
+        # text fallback – pa tokena në body, vetëm info bazike
+        body_lines = [
+            "Thank you for your reservation!",
+            f"Route ID: {route_id}",
+            f"Number of tickets: {len(tickets)}",
+            "",
+            "Your tickets are attached as QR codes.",
+        ]
+        msg.body = "\n".join(body_lines)
+
+        # Për secilën biletë gjenero QR code dhe e bashkangjesim
+        for t in tickets:
+            token = t["token"]
+
+            qr = qrcode.make(token)
+            buffer = BytesIO()
+            qr.save(buffer, format="PNG")
+            buffer.seek(0)
+
+            msg.attach(
+                filename=f"ticket_{t['seat_no']}.png",
+                content_type="image/png",
+                data=buffer.read()
+            )
+
+        mail.send(msg)
+
+    except Exception as e:
+        print("Error sending email:", e)
+
+    # Rezultati që ia kthen front-end-it
+    result = {
+        "trip_id": trip_id,
+        "count": len(tickets),
+        "tickets": tickets,
+    }
+    return jsonify(result)
 
 
 # ---------------------------------------------------
@@ -183,10 +231,6 @@ def api_confirm_tickets():
         })
 
 
-# ---------------------------------------------------
-# 3) KONTROLLI I BILETËS ME QUERY /api/ticket?token=...
-#    (KJO ËSHTË AJO QË E PËRDOR FRONTEND-i YT)
-# ---------------------------------------------------
 @app.get("/api/tickets/<token>")
 def get_ticket(token):
     conn = sqlite3.connect("app.db")
@@ -223,6 +267,8 @@ def get_ticket(token):
         "from": row["origin"],
         "to": row["destination"]
     })
+
+
 
 
 

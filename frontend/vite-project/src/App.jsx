@@ -49,6 +49,8 @@ function App() {
   const [from, setFrom] = useState("Pristina");
   const [to, setTo] = useState("Gjilan");
   const [email, setEmail] = useState("");
+  
+
 
 
   const todayISO = new Date().toISOString().slice(0, 10);
@@ -210,7 +212,8 @@ const handleChildrenChange = (e) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           trip_id: tripId,
-          count: passengers, // sa bileta po blejmë
+          count: passengers,
+          email: "gyltene.sfishta@gmail.com", 
         }),
       });
 
@@ -338,7 +341,7 @@ const handleChildrenChange = (e) => {
             <form className="search-form" onSubmit={handleSubmit}>
               {/* From & To */}
           
-+           <div className="row city-row">
+            <div className="row city-row">
 
                 <div className="field">
                   <label>From</label>
@@ -375,7 +378,16 @@ const handleChildrenChange = (e) => {
               </div>
 
               
-
+<div className="row city-row">
+    <label>Email</label>
+    <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@example.com"
+        required
+    />
+</div>
 
 
               {/* Dates + Passengers */}
@@ -706,11 +718,22 @@ const handleChildrenChange = (e) => {
           </li>
         </ul>
 
+        <div className="field" style={{ marginTop: "16px" }}>
+          <label>Email for ticket</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="example@gmail.com"
+            required
+          />
+        </div>
+
         <button
           type="button"
           className="search-button reserve-button"
           onClick={handleReserve}
-          disabled={isReserving}
+          disabled={isReserving || !email}
           style={{ marginTop: "16px" }}
         >
           {isReserving ? "Reserving..." : "Reserve tickets"}

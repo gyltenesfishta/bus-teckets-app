@@ -212,8 +212,9 @@ const handleChildrenChange = (e) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           trip_id: tripId,
-          count: passengers,
-          email: "gyltene.sfishta@gmail.com", 
+          adults,      
+          children, 
+          email: email, 
         }),
       });
 
@@ -450,7 +451,7 @@ const handleChildrenChange = (e) => {
             onClick={handleAdultsIncrement}
             className="counter-btn"
           >
-            
+            +
           </button>
         </div>
       </div>
@@ -467,7 +468,7 @@ const handleChildrenChange = (e) => {
             onClick={handleChildrenDecrement}
             className="counter-btn"
           >
-            
+            -
           </button>
           <span className="counter-value">{children}</span>
           <button
@@ -475,7 +476,7 @@ const handleChildrenChange = (e) => {
             onClick={handleChildrenIncrement}
             className="counter-btn"
           >
-            
+          +
           </button>
         </div>
       </div>

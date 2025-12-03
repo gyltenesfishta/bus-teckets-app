@@ -12,6 +12,8 @@ from io import BytesIO
 
 
 
+
+
 app = Flask(__name__)
 CORS(app)
 
@@ -30,9 +32,9 @@ SECRET_KEY = b"super-secret-key-change-this"
 def api_tickets():
     data = request.json or {}
 
-    # nga frontendi po vjen route_id, por fusha quhet "trip_id"
     route_id = data.get("trip_id")
-    count = data.get("count", 1)
+    adults = data.get("adults", 0)
+    children = data.get("children", 0)
     email = data.get("email")
 
     if not email:
@@ -41,13 +43,19 @@ def api_tickets():
     if not route_id:
         return jsonify({"error": "trip_id is required"}), 400
 
+    # Sigurohemi që janë numra
     try:
-        count = int(count)
+        adults = int(adults)
+        children = int(children)
     except (TypeError, ValueError):
-        return jsonify({"error": "count must be an integer"}), 400
+        return jsonify({"error": "adults/children must be integers"}), 400
 
+    if adults < 0 or children < 0:
+        return jsonify({"error": "adults/children must be >= 0"}), 400
+
+    count = adults + children
     if count < 1:
-        return jsonify({"error": "count must be >= 1"}), 400
+        return jsonify({"error": "At least 1 passenger is required"}), 400
 
     with get_connection() as conn:
         # zgjedhim njërin trip për këtë route_id
@@ -112,7 +120,17 @@ def api_tickets():
                 else:
                     factor = 1.5
 
-                price = round(base_price * factor, 2)
+                base_seat_price = round(base_price * factor, 2)
+
+                # Zbritja 10% për children
+                if i < adults:
+                    # këto vende i llogarisim për adult
+                    price = base_seat_price
+                    passenger_type = "adult"
+                else:
+                    # pjesa tjetër e vendeve janë children → -10%
+                    price = round(base_seat_price * 0.9, 2)
+                    passenger_type = "child"
 
                 # HMAC token
                 message = f"{trip_id}:{seat_no}".encode("utf-8")
@@ -132,6 +150,7 @@ def api_tickets():
                         "price": price,
                         "status": "reserved",
                         "token": token,
+                        "passenger_type": passenger_type,
                     }
                 )
 
@@ -147,14 +166,24 @@ def api_tickets():
             recipients=[email],
         )
 
-        # text fallback – pa tokena në body, vetëm info bazike
+        # Teksti i email-it: info + seat & price për secilën biletë
         body_lines = [
             "Thank you for your reservation!",
             f"Route ID: {route_id}",
             f"Number of tickets: {len(tickets)}",
             "",
-            "Your tickets are attached as QR codes.",
+            "Ticket details:",
         ]
+
+        for t in tickets:
+            line = f"- Seat: {t['seat_no']}  |  Price: {t['price']} €"
+            if t.get("passenger_type") == "child":
+                line += "  (Child -10%)"
+            body_lines.append(line)
+
+        body_lines.append("")
+        body_lines.append("Your tickets are attached as QR codes.")
+
         msg.body = "\n".join(body_lines)
 
         # Për secilën biletë gjenero QR code dhe e bashkangjesim
@@ -267,9 +296,6 @@ def get_ticket(token):
         "from": row["origin"],
         "to": row["destination"]
     })
-
-
-
 
 
 if __name__ == "__main__":

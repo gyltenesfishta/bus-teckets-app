@@ -297,6 +297,46 @@ def get_ticket(token):
         "to": row["destination"]
     })
 
+@app.post("/api/tickets/<token>/checkin")
+def checkin_ticket(token):
+    """
+    Përdoret nga Conductor panel për të shënuar një biletë si 'used'.
+    """
+    with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT id, status
+            FROM tickets
+            WHERE token = ?
+            """,
+            (token,),
+        ).fetchone()
+
+        if not row:
+            return jsonify({"error": "Ticket not found"}), 404
+
+        status = row["status"]
+
+        if status == "reserved":
+            return jsonify({"error": "Ticket is not paid yet."}), 400
+
+        if status == "used":
+            return jsonify({"error": "Ticket already used."}), 400
+
+        if status != "paid":
+            # për çdo status tjetër i panjohur
+            return jsonify({"error": f"Ticket cannot be checked in from status '{status}'."}), 400
+
+        # nëse është 'paid', e shënojmë si 'used'
+        conn.execute(
+            "UPDATE tickets SET status = 'used' WHERE id = ?",
+            (row["id"],),
+        )
+        conn.commit()
+
+    return jsonify({"ok": True, "status": "used"})
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

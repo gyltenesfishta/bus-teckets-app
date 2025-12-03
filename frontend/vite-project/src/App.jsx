@@ -88,6 +88,10 @@ function App() {
 
   const [scanMode, setScanMode] = useState(false);
 
+  const [checkinMessage, setCheckinMessage] = useState(null);
+  const [checkinError, setCheckinError] = useState(null);
+
+
 
 
   const isRoundTrip = tripType === "round-trip";
@@ -261,6 +265,40 @@ const handleChildrenChange = (e) => {
       setValidateError("Nuk mund të lidhem me serverin.");
     }
   };
+
+    const handleCheckin = async () => {
+    const token = validateToken.trim();
+    if (!token) return;
+
+    try {
+      setCheckinError(null);
+      setCheckinMessage(null);
+
+      const response = await fetch(
+        `http://127.0.0.1:5000/api/tickets/${encodeURIComponent(token)}/checkin`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setCheckinError(data.error || "Error while checking in ticket.");
+        return;
+      }
+
+      // update status në UI
+      setCheckinMessage("Ticket marked as used.");
+      setValidateResult((prev) =>
+        prev ? { ...prev, status: "used" } : prev
+      );
+    } catch (err) {
+      setCheckinError("Could not connect to server for check-in.");
+    }
+  };
+
 
   const handleConfirmPayment = async () => {
     if (!reservationResult || !reservationResult.tickets) return;
@@ -809,17 +847,44 @@ const handleChildrenChange = (e) => {
         <p style={{ color: "red", marginTop: "8px" }}>{validateError}</p>
       )}
 
-      {validateResult && (
-        <ul className="result-details">
-          <li>Status: {validateResult.status}</li>
-          <li>
-            Route: {validateResult.from} → {validateResult.to}
-          </li>
-          <li>Departure: {validateResult.departure_at}</li>
-          <li>Seat: {validateResult.seat_no}</li>
-          <li>Price: {validateResult.price} €</li>
-        </ul>
+            {validateResult && (
+        <>
+          <ul className="result-details">
+            <li>Status: {validateResult.status}</li>
+            <li>
+              Route: {validateResult.from} → {validateResult.to}
+            </li>
+            <li>Departure: {validateResult.departure_at}</li>
+            <li>Seat: {validateResult.seat_no}</li>
+            <li>Price: {validateResult.price} €</li>
+          </ul>
+
+          {/* Butoni "Mark as used" vetëm kur statusi është paid */}
+          {validateResult.status === "paid" && (
+            <button
+              type="button"
+              className="search-button"
+              style={{ marginTop: "10px" }}
+              onClick={handleCheckin}
+            >
+              Mark as used
+            </button>
+          )}
+
+          {checkinMessage && (
+            <p style={{ color: "green", marginTop: "8px" }}>
+              {checkinMessage}
+            </p>
+          )}
+
+          {checkinError && (
+            <p style={{ color: "red", marginTop: "8px" }}>
+              {checkinError}
+            </p>
+          )}
+        </>
       )}
+
     </section>
 
     <button

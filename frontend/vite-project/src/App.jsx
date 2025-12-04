@@ -81,6 +81,7 @@ function App() {
   // view: "search" | "results" | "payment"
   const [view, setView] = useState("search");
 
+
   // për kontrollimin e biletës
   const [validateToken, setValidateToken] = useState("");
   const [validateResult, setValidateResult] = useState(null);
@@ -185,6 +186,22 @@ const passengerLabel = useMemo(() => {
     setAdults(value);
   }
 };
+
+
+const handleBack = () => {
+  if (view === "payment") {
+    setView("results");
+  } else if (view === "results") {
+    setView("trips");
+  } else if (view === "trips") {
+    setView("search");
+  } else if (view === "conductor" || view === "stats") {
+    setView("trips");
+  } else {
+    setView("search");
+  }
+};
+
 
 const handleChildrenChange = (e) => {
   const value = parseInt(e.target.value, 10);
@@ -387,7 +404,7 @@ const handleChildrenChange = (e) => {
 
       const data = await response.json();
       setPaymentStatus(
-        `U konfirmuan ${data.paid_count} bileta. ${
+        ` ${data.paid_count} tickets confirmed. ${
           data.already_paid && data.already_paid.length
             ? "Disa bileta kanë qenë tashmë të paguara."
             : ""
@@ -402,6 +419,12 @@ const handleChildrenChange = (e) => {
 
   return (
     <div className="app-root">
+      {view !== "search" && (
+  <button className="back-button" onClick={handleBack}>
+    ←
+  </button>
+)}
+
       {/* HERO */}
       <header className="hero">
         <h1>Low cost bus travel</h1>
@@ -616,30 +639,26 @@ const handleChildrenChange = (e) => {
 {/* --------------- FAQJA 2: LISTA E ORAREVE --------------- */}
 {view === "trips" && searchResult && (
   <>
-   <button
-      type="button"
-      className="search-button"
-      onClick={() => setView("search")}
-      style={{ marginBottom: "16px" }}
-    >
-      ← Back to search
-    </button>
-    <button
-  type="button"
-  className="conductor-button"
-  onClick={() => setView("conductor")}
->
-  Conductor view
-</button>
+   
+    <div className="top-actions">
+  <button
+    type="button"
+    className="top-button"
+    onClick={() => setView("conductor")}
+  >
+    Conductor view
+  </button>
 
-<button
-  type="button"
-  className="secondary-button"
-  onClick={handleLoadStats}
-  style={{ marginLeft: "10px" }}
->
-  View statistics
-</button>
+    <button
+    type="button"
+    className="top-button"
+    onClick={handleLoadStats}
+  >
+    View statistics
+  </button>
+
+</div>
+
 
 
 
@@ -815,14 +834,7 @@ const handleChildrenChange = (e) => {
       <p>No sold tickets yet.</p>
     )}
 
-    <button
-      type="button"
-      className="search-button"
-      style={{ marginTop: "16px" }}
-      onClick={() => setView("search")}
-    >
-      Back to search
-    </button>
+  
   </section>
 )}
 
@@ -830,15 +842,7 @@ const handleChildrenChange = (e) => {
         {/* --------------- FAQJA 2: REZULTATET --------------- */}
         {view === "results" && searchResult && (
           <>
-            {/* Kthehu mbrapa */}
-            <button
-              type="button"
-              className="search-button"
-              onClick={() => setView("search")}
-              style={{ marginBottom: "20px" }}
-            >
-              ← Back to search
-            </button>
+            
             
 
 
@@ -1015,13 +1019,7 @@ const handleChildrenChange = (e) => {
 
     </section>
 
-    <button
-      className="search-button"
-      style={{ marginTop: "20px" }}
-      onClick={() => setView("search")}
-    >
-      ← Back to search
-         </button>
+    
   </div>
 )}
 
@@ -1093,16 +1091,6 @@ const handleChildrenChange = (e) => {
             {paymentError && (
               <p style={{ color: "red", marginTop: "8px" }}>{paymentError}</p>
             )}
-
-            {/* Opsion kthehu te rezultatet */}
-            <button
-              type="button"
-              className="search-button"
-              onClick={() => setView("results")}
-              style={{ marginTop: "16px" }}
-            >
-              ← Back to results
-            </button>
           </section>
         )}
       </main>

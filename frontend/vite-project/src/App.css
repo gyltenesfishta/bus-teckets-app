@@ -525,6 +525,63 @@ body {
 }
 
 
+.back-button {
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #333;
+}
+
+.back-button:hover {
+  opacity: 0.6;
+}
+
+
+
+/* Container për butonat Conductor / Stats në hero */
+.top-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;              /* hapësirë mes dy butonave */
+}
+
+/* Butonat e lartë – pill, të lehtë */
+.top-button {
+  padding: 8px 22px;
+  border-radius: 999px;
+  border: 1px solid #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
+}
+
+.top-button-secondary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+
+.top-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.top-button:active {
+  transform: translateY(0);
+  opacity: 0.8;
+}
+
 
 /* ===== Summary i çmimit – .price-summary ===== */
 .price-summary {

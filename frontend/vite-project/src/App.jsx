@@ -91,6 +91,11 @@ function App() {
   const [checkinMessage, setCheckinMessage] = useState(null);
   const [checkinError, setCheckinError] = useState(null);
 
+  const [stats, setStats] = useState(null);
+  const [statsError, setStatsError] = useState(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+
+
 
   // Përmbledhja e çmimit në bazë të biletave të rezervuara (adult/child + zbritja 10%)
   const priceSummary = useMemo(() => {
@@ -331,6 +336,31 @@ const handleChildrenChange = (e) => {
       setCheckinError("Could not connect to server for check-in.");
     }
   };
+
+    const handleLoadStats = async () => {
+    try {
+      setIsLoadingStats(true);
+      setStatsError(null);
+
+      const response = await fetch("http://127.0.0.1:5000/api/stats/routes");
+      const data = await response.json();
+
+      if (!response.ok) {
+        setStatsError(data.error || "Error loading statistics.");
+        setStats(null);
+        return;
+      }
+
+      setStats(data.routes || []);
+      setView("stats");
+    } catch (err) {
+      setStatsError("Could not connect to server for statistics.");
+      setStats(null);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
 
 
   const handleConfirmPayment = async () => {
@@ -601,6 +631,20 @@ const handleChildrenChange = (e) => {
 >
   Conductor view
 </button>
+
+<button
+  type="button"
+  className="secondary-button"
+  onClick={handleLoadStats}
+  style={{ marginLeft: "10px" }}
+>
+  View statistics
+</button>
+
+
+
+
+
     {/* Kartela lart me From / To / Dates / Passengers – PA butonin Search */}
     <div className="search-card">
       {/* Tipi i udhëtimit (njësoj si në faqen e parë) */}
@@ -668,6 +712,10 @@ const handleChildrenChange = (e) => {
           </div>
         </div>
 
+
+
+
+
         {/* Dates + Passengers */}
         <div className="row date-passenger-row">
           <div className="field">
@@ -730,6 +778,53 @@ const handleChildrenChange = (e) => {
 )}
 
 
+{view === "stats" && (
+  <section className="result-card" style={{ marginTop: "20px" }}>
+    <h2>Route statistics</h2>
+
+    {isLoadingStats && <p>Loading statistics...</p>}
+
+    {statsError && (
+      <p style={{ color: "red" }}>{statsError}</p>
+    )}
+
+    {stats && stats.length > 0 && !isLoadingStats && !statsError && (
+      <table className="stats-table">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Tickets sold</th>
+            <th>Total revenue (€)</th>
+            <th>Avg price (€)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {stats.map((row, idx) => (
+            <tr key={idx}>
+              <td>{row.route_name}</td>
+              <td>{row.tickets_sold}</td>
+              <td>{row.total_revenue.toFixed(2)}</td>
+              <td>{row.avg_price.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+
+    {stats && stats.length === 0 && !isLoadingStats && !statsError && (
+      <p>No sold tickets yet.</p>
+    )}
+
+    <button
+      type="button"
+      className="search-button"
+      style={{ marginTop: "16px" }}
+      onClick={() => setView("search")}
+    >
+      Back to search
+    </button>
+  </section>
+)}
 
 
         {/* --------------- FAQJA 2: REZULTATET --------------- */}

@@ -374,6 +374,48 @@ def checkin_ticket(token):
     return jsonify({"ok": True, "status": "used"})
     
 
+@app.get("/api/stats/routes")
+def stats_routes():
+    """
+    Kthen statistika bazë për çdo linjë:
+    - emri i routes
+    - numri i biletave të shitura (paid + used)
+    - të ardhurat totale
+    - çmimi mesatar
+    """
+    with get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        rows = cur.execute(
+            """
+            SELECT
+                r.name AS route_name,
+                COUNT(t.id) AS tickets_sold,
+                COALESCE(SUM(t.price), 0) AS total_revenue,
+                CASE
+                    WHEN COUNT(t.id) > 0 THEN ROUND(AVG(t.price), 2)
+                    ELSE 0
+                END AS avg_price
+            FROM routes r
+            LEFT JOIN trips tr ON tr.route_id = r.id
+            LEFT JOIN tickets t ON t.trip_id = tr.id
+                  AND t.status IN ('paid', 'used')
+            GROUP BY r.id
+            ORDER BY r.id;
+            """
+        ).fetchall()
+
+    stats = []
+    for row in rows:
+        stats.append({
+            "route_name": row["route_name"],
+            "tickets_sold": row["tickets_sold"],
+            "total_revenue": row["total_revenue"],
+            "avg_price": row["avg_price"],
+        })
+
+    return jsonify({"routes": stats})
 
 
 

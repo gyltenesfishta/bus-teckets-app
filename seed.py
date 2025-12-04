@@ -1,4 +1,6 @@
 from db import get_connection
+from datetime import datetime, timedelta
+
 
 def seed():
     with get_connection() as conn:
@@ -11,37 +13,44 @@ def seed():
 
         # Rutat – DUHET të jenë në të njëjtin rend si në frontend (id 1..9)
         routes = [
-            ("Prishtinë - Podujevë",   "Prishtinë", "Podujevë"),
+            ("Prishtinë - Podujevë",    "Prishtinë", "Podujevë"),
             ("Prishtinë - Fushë Kosovë","Prishtinë", "Fushë Kosovë"),
-            ("Prishtinë - Lipjan",     "Prishtinë", "Lipjan"),
-            ("Prishtinë - Pejë",       "Prishtinë", "Pejë"),
-            ("Prishtinë - Gjilan",     "Prishtinë", "Gjilan"),
-            ("Prishtinë - Ferizaj",    "Prishtinë", "Ferizaj"),
-            ("Prishtinë - Prizren",    "Prishtinë", "Prizren"),
-            ("Prishtinë - Deçan",      "Prishtinë", "Deçan"),
-            ("Prishtinë - Malishevë",  "Prishtinë", "Malishevë"),
+            ("Prishtinë - Lipjan",      "Prishtinë", "Lipjan"),
+            ("Prishtinë - Pejë",        "Prishtinë", "Pejë"),
+            ("Prishtinë - Gjilan",      "Prishtinë", "Gjilan"),
+            ("Prishtinë - Ferizaj",     "Prishtinë", "Ferizaj"),
+            ("Prishtinë - Prizren",     "Prishtinë", "Prizren"),
+            ("Prishtinë - Deçan",       "Prishtinë", "Deçan"),
+            ("Prishtinë - Malishevë",   "Prishtinë", "Malishevë"),
         ]
 
         cur.executemany(
             "INSERT INTO routes (name, origin, destination) VALUES (?, ?, ?)",
             routes,
         )
+        now = datetime.now()
 
-        # Udhëtimet (tripet) – nga route_id 1 deri 9, me çmimet që kemi përdorur
-        trips = [
-            (1, "2025-11-23 08:00", 1.5, 40),  # Podujevë
-            (2, "2025-11-23 08:20", 1.5, 40),  # Fushë Kosovë
-            (3, "2025-11-23 08:40", 1.5, 40),  # Lipjan
-            (4, "2025-11-23 09:00", 4.5, 40),  # Pejë
-            (5, "2025-11-23 09:20", 4.0, 40),  # Gjilan
-            (6, "2025-11-23 09:40", 4.0, 40),  # Ferizaj
-            (7, "2025-11-23 10:00", 5.0, 40),  # Prizren
-            (8, "2025-11-23 10:20", 5.0, 40),  # Deçan
-            (9, "2025-11-23 10:40", 3.5, 40),  # Malishevë
+        trip_defs = [
+            # (route_id, offset_minuta, base_price)
+            (1, 30, 1.5),   # Podujevë  pas 30 min
+            (2, 50, 1.5),   # Fushë Kosovë pas 50 min
+            (3, 70, 1.5),   # Lipjan    pas 70 min
+            (4, 90, 4.5),   # Pejë      pas 90 min
+            (5, 110, 4.0),  # Gjilan    pas 110 min
+            (6, 130, 4.0),  # Ferizaj   pas 130 min
+            (7, 150, 5.0),  # Prizren   pas 150 min
+            (8, 170, 5.0),  # Deçan     pas 170 min
+            (9, 190, 3.5),  # Malishevë pas 190 min
         ]
 
+        trips = []
+        for route_id, offset_min, base_price in trip_defs:
+            departure_at = (now + timedelta(minutes=offset_min)).isoformat(timespec="minutes")
+            trips.append((route_id, departure_at, base_price, 40))
+
         cur.executemany(
-            "INSERT INTO trips (route_id, departure_at, base_price, total_seats) VALUES (?, ?, ?, ?)",
+            "INSERT INTO trips (route_id, departure_at, base_price, total_seats) "
+            "VALUES (?, ?, ?, ?)",
             trips,
         )
 
@@ -51,4 +60,3 @@ def seed():
 
 if __name__ == "__main__":
     seed()
-

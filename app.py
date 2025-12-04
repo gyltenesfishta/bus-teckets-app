@@ -9,7 +9,7 @@ import os
 import smtplib
 import qrcode
 from io import BytesIO
-
+from datetime import datetime, timedelta
 
 
 
@@ -260,6 +260,8 @@ def api_confirm_tickets():
         })
 
 
+
+
 @app.get("/api/tickets/<token>")
 def get_ticket(token):
     conn = sqlite3.connect("app.db")
@@ -287,6 +289,29 @@ def get_ticket(token):
     if row is None:
         return jsonify({"error": "Bileta nuk u gjet."}), 404
 
+    # ---- VALIDITY WINDOW ----
+    departure = datetime.fromisoformat(row["departure_at"])
+    now = datetime.now()
+
+    valid_from = departure - timedelta(hours=1)
+    valid_until = departure + timedelta(hours=1)
+
+    if now < valid_from:
+        return jsonify({
+            "error": "Ticket not valid yet.",
+            "status": "not_valid_yet",
+            "departure_at": row["departure_at"]
+        }), 400
+
+    if now > valid_until:
+        return jsonify({
+            "error": "Ticket expired.",
+            "status": "expired",
+            "departure_at": row["departure_at"]
+        }), 400
+
+  
+
     return jsonify({
         "token": row["token"],
         "status": row["status"],
@@ -297,17 +322,16 @@ def get_ticket(token):
         "to": row["destination"]
     })
 
+
 @app.post("/api/tickets/<token>/checkin")
 def checkin_ticket(token):
-    """
-    Përdoret nga Conductor panel për të shënuar një biletë si 'used'.
-    """
     with get_connection() as conn:
         row = conn.execute(
             """
-            SELECT id, status
-            FROM tickets
-            WHERE token = ?
+            SELECT t.id, t.status, tr.departure_at
+            FROM tickets t
+            JOIN trips tr ON t.trip_id = tr.id
+            WHERE t.token = ?
             """,
             (token,),
         ).fetchone()
@@ -317,17 +341,30 @@ def checkin_ticket(token):
 
         status = row["status"]
 
+        # kontrolli i pageses
         if status == "reserved":
             return jsonify({"error": "Ticket is not paid yet."}), 400
 
         if status == "used":
             return jsonify({"error": "Ticket already used."}), 400
 
-        if status != "paid":
-            # për çdo status tjetër i panjohur
-            return jsonify({"error": f"Ticket cannot be checked in from status '{status}'."}), 400
+        # ---- VALIDITY CHECK ----
+        from datetime import datetime, timedelta
 
-        # nëse është 'paid', e shënojmë si 'used'
+        departure = datetime.fromisoformat(row["departure_at"])
+        now = datetime.now()
+
+        valid_from = departure - timedelta(hours=1)
+        valid_until = departure + timedelta(hours=1)
+
+        if now < valid_from:
+            return jsonify({"error": "Ticket not valid yet."}), 400
+
+        if now > valid_until:
+            return jsonify({"error": "Ticket expired."}), 400
+
+
+        # check-in OK
         conn.execute(
             "UPDATE tickets SET status = 'used' WHERE id = ?",
             (row["id"],),
@@ -335,6 +372,8 @@ def checkin_ticket(token):
         conn.commit()
 
     return jsonify({"ok": True, "status": "used"})
+    
+
 
 
 

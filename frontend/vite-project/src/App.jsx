@@ -92,6 +92,39 @@ function App() {
   const [checkinError, setCheckinError] = useState(null);
 
 
+  // Përmbledhja e çmimit në bazë të biletave të rezervuara (adult/child + zbritja 10%)
+  const priceSummary = useMemo(() => {
+    if (!reservationResult || !reservationResult.tickets) return null;
+
+    const tickets = reservationResult.tickets;
+    let adultCount = 0;
+    let childCount = 0;
+    let totalPrice = 0;
+    let fullPriceIfNoDiscount = 0;
+
+    for (const t of tickets) {
+      const price = Number(t.price) || 0;
+      totalPrice += price;
+
+      if (t.passenger_type === "child") {
+        childCount += 1;
+        // rikthe çmimin para zbritjes 10% (përafërsisht)
+        fullPriceIfNoDiscount += price / 0.9;
+      } else {
+        adultCount += 1;
+        fullPriceIfNoDiscount += price;
+      }
+    }
+
+    const savings = fullPriceIfNoDiscount - totalPrice;
+
+    return {
+      adultCount,
+      childCount,
+      totalPrice,
+      savings: savings > 0 ? savings : 0,
+    };
+  }, [reservationResult]);
 
 
   const isRoundTrip = tripType === "round-trip";
@@ -897,8 +930,6 @@ const handleChildrenChange = (e) => {
   </div>
 )}
 
-
-
         {/* --------------- FAQJA 3: PAGESA / REZERVIMI --------------- */}
         {/* Ticket reservation */}
         {view === "payment" && reservationResult && (
@@ -910,21 +941,40 @@ const handleChildrenChange = (e) => {
       You reserved <strong>{reservationResult.count}</strong> ticket(s)
     </p>
 
-    <ul className="result-details">
+        <ul className="result-details">
       {reservationResult.tickets.map((t, idx) => (
         <li key={idx} style={{ marginBottom: "20px" }}>
-  Seat: {t.seat_no} — {t.price} €
-  <br />
-  
+          Seat: {t.seat_no} — {t.price} €
+          {t.passenger_type === "child" && (
+            <span> (Child -10%)</span>
+          )}
+          <br />
 
-  {/* QR Code */}
-  <div style={{ marginTop: "10px" }}>
-    <QRCodeCanvas value={t.token} size={120} />
-  </div>
-</li>
-
+          {/* QR Code */}
+          <div style={{ marginTop: "10px" }}>
+            <QRCodeCanvas value={t.token} size={120} />
+          </div>
+        </li>
       ))}
     </ul>
+    {priceSummary && (
+      <div style={{ marginTop: "16px" }}>
+        <h3>Price summary</h3>
+        <ul className="result-details">
+          <li>Adults: {priceSummary.adultCount}</li>
+          <li>Children (0–14): {priceSummary.childCount}</li>
+          <li>
+            Total price: {priceSummary.totalPrice.toFixed(2)} €
+          </li>
+          {priceSummary.savings > 0 && (
+            <li>
+              You saved {priceSummary.savings.toFixed(2)} € with 10% child discount.
+            </li>
+          )}
+        </ul>
+      </div>
+    )}
+
 
 
 

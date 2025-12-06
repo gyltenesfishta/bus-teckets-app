@@ -1074,6 +1074,8 @@ const handleChildrenChange = (e) => {
           ...prev,
           selectedRouteId: route.id,
           selectedTripId: trip.id,
+          selectedDepartureTime: trip.departure,
+          selectedArrivalTime: trip.arrival,
         }));
         setView("results");
       }}
@@ -1160,6 +1162,16 @@ const handleChildrenChange = (e) => {
                   <strong>{t("returnDate")}:</strong> {searchResult.returnDate}
                 </li>
               )}
+
+              <li>
+  <strong>Departure time:</strong>{" "}
+  {searchResult.selectedDepartureTime || "Not selected"}
+</li>
+<li>
+  <strong>Arrival time:</strong>{" "}
+  {searchResult.selectedArrivalTime || "Not selected"}
+</li>
+
 
               <li>
                 <strong>{t("Passengers")}:</strong> {searchResult.passengers}
@@ -1326,6 +1338,22 @@ const handleChildrenChange = (e) => {
     </p>
 
         <ul className="result-details">
+          <li>
+    <strong>Departure date:</strong> {searchResult?.departureDate}
+  </li>
+  {searchResult?.trip_type === "round-trip" && searchResult?.returnDate && (
+    <li>
+      <strong>Return date:</strong> {searchResult.returnDate}
+    </li>
+  )}
+  <li>
+    <strong>Departure time:</strong>{" "}
+    {searchResult?.selectedDepartureTime}
+  </li>
+  <li>
+    <strong>Arrival time:</strong>{" "}
+    {searchResult?.selectedArrivalTime}
+  </li>
       {reservationResult.tickets.map((ticket, idx) => (
         <li key={idx} style={{ marginBottom: "20px" }}>
           {t("seatLabel")}: {ticket.seat_no} — {ticket.price} €

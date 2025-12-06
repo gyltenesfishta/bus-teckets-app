@@ -12,9 +12,7 @@ function parseTimeToMinutes(timeStr) {
 function formatMinutesToTime(totalMinutes) {
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
-  return `${h.toString().padStart(2, "0")}:${m
-    .toString()
-    .padStart(2, "0")}`;
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
 }
 
 // p.sh. 07:00 - 07:45 => "0:45 hrs"
@@ -53,22 +51,18 @@ function getStopSchedule(route, trip) {
   });
 }
 
-export default function SearchResults({ searchParams, onSelectTrip }) {
+export default function SearchResults({ searchParams, onSelectTrip, t }) {
   const { from, to, date } = searchParams || {};
   const [expandedTripId, setExpandedTripId] = useState(null);
 
-  const route = routes.find(
-    (r) => r.from === from && r.to === to
-  );
+  const route = routes.find((r) => r.from === from && r.to === to);
 
+  // Nëse nuk ka linjë për këtë drejtim
   if (!route) {
     return (
       <div style={{ padding: "24px" }}>
-        <h2>No trips found</h2>
-        <p>
-          There are no available trips for this route yet.
-          Try selecting another destination.
-        </p>
+        <h2>{t("noTripsFound")}</h2>
+        <p>{t("tryAnother")}</p>
       </div>
     );
   }
@@ -77,22 +71,18 @@ export default function SearchResults({ searchParams, onSelectTrip }) {
 
   return (
     <div style={{ padding: "24px" }}>
-      
-        {date && (
-          <p style={{ color: "#555", fontSize: "14px" }}>
-            Outbound trips • {date}
-          </p>
-        )}
-    
+      {date && (
+        <p style={{ color: "#555", fontSize: "14px" }}>
+          {t("outboundTrips")} • {date}
+        </p>
+      )}
 
       {/* Lista e udhëtimeve */}
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         {route.trips.map((trip) => {
           const duration = getDuration(trip.departure, trip.arrival);
           const isExpanded = expandedTripId === trip.id;
-          const stopSchedule = isExpanded
-            ? getStopSchedule(route, trip)
-            : [];
+          const stopSchedule = isExpanded ? getStopSchedule(route, trip) : [];
 
           return (
             <div
@@ -140,16 +130,15 @@ export default function SearchResults({ searchParams, onSelectTrip }) {
                     </span>
                   </div>
                   <div style={{ fontSize: "14px", color: "#4b5563" }}>
-                    {route.from} bus station → {route.to} bus station
+                    {route.from} {t("busStation")} → {route.to}{" "}
+                    {t("busStation")}
                   </div>
 
-                  {/* "9 stops" klikues */}
+                  {/* "9 ndalesa • Autobus • Direkt" klikues */}
                   <button
                     type="button"
                     onClick={() =>
-                      setExpandedTripId(
-                        isExpanded ? null : trip.id
-                      )
+                      setExpandedTripId(isExpanded ? null : trip.id)
                     }
                     style={{
                       marginTop: "6px",
@@ -162,7 +151,7 @@ export default function SearchResults({ searchParams, onSelectTrip }) {
                       textDecoration: "underline",
                     }}
                   >
-                    {stopsCount} stops • Bus • Direct
+                    {stopsCount} {t("stops")} • {t("bus")} • {t("direct")}
                     {isExpanded ? " ▲" : " ▼"}
                   </button>
                 </div>
@@ -200,7 +189,7 @@ export default function SearchResults({ searchParams, onSelectTrip }) {
                       cursor: "pointer",
                     }}
                   >
-                    Select
+                    {t("select")}
                   </button>
                 </div>
               </div>
@@ -238,3 +227,4 @@ export default function SearchResults({ searchParams, onSelectTrip }) {
     </div>
   );
 }
+

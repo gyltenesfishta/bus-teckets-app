@@ -98,9 +98,44 @@ const translations = {
   reserveTickets: "Reserve tickets",
   Total:"Total:",
   Triptype: "Trip Type",
+  Select: "Select",
+  outboundTrips: "Outbound trips",
+  stops: "stops",
+  bus: "Bus",
+  direct: "Direct",
+  select: "Select",
+  noTripsFound: "No trips found",
+  tryAnother: "Try selecting another destination",
+  busStation: "bus station",
+  outboundTrips: "Outbound trips",
+    busStation: "bus station",
+    stops: "stops",
+    bus: "Bus",
+    direct: "Direct",
+    select: "Select",
+    noTripsFound: "No trips found",
+    tryAnother: "Try selecting another destination.",
+    routeStatsTitle: "Route statistics",
+    routeColumn: "Route",
+    ticketsSoldColumn: "Tickets sold",
+    totalRevenueColumn: "Total revenue (€)",
+    avgPriceColumn: "Avg price (€)",
 
   },
   sq: {
+    routeStatsTitle: "Statistikat e linjave",
+    routeColumn: "Linja",
+    ticketsSoldColumn: "Bileta të shitura",
+    totalRevenueColumn: "Të ardhura totale (€)",
+    avgPriceColumn: "Çmimi mesatar (€)",
+    outboundTrips: "Udhëtime të daljes",
+    busStation: "stacion i autobusëve",
+    stops: "ndalesa",
+    bus: "Autobus",
+    direct: "Direkt",
+    select: "Zgjidh",
+    noTripsFound: "Nuk u gjetën udhëtime",
+    tryAnother: "Provo një destinacion tjetër.",
     adultsAgeHint: "15+ vjeç",
     childrenLabel: "Fëmijë (0–14)",
     childrenAgeHint: "0 deri në 14 vjeç",
@@ -193,6 +228,19 @@ const translations = {
   reserveTickets: "Rezervo biletat",
   Total: "Totali:",
   Triptype: "Lloji i udhëtimit",
+  stops: "ndalesa",
+    bus: "Autobus",
+    direct: "Direkt",
+    select: "Zgjidh",
+    outboundTrips: "Udhëtime të daljes",
+  stops: "ndalesa",
+  bus: "Autobus",
+  direct: "Direkt",
+  select: "Zgjedh",
+  noTripsFound: "Nuk u gjetën udhëtime",
+  tryAnother: "Provo një destinacion tjetër",
+  busStation: "stacion i autobusëve",
+  
   },
 };
 
@@ -208,6 +256,7 @@ const ROUTES = [
   { id: 7, from: "Pristina", to: "Prizren", price: 5.0 },
   { id: 8, from: "Pristina", to: "Deçan", price: 5.0 },
   { id: 9, from: "Pristina", to: "Malisheva", price: 3.5 },
+
 ];
 
 // çmimi për një drejtim, pavarësisht kahjes
@@ -714,12 +763,12 @@ const handleChildrenChange = (e) => {
                 </div>
               
                   <div className="field">
-    <label>{t("email")}</label>
+    <label>{t("emailLabel")}</label>
     <input
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="you@example.com"
+        placeholder={t("emailPlaceholder")}
         required
     />
 </div>
@@ -768,7 +817,7 @@ const handleChildrenChange = (e) => {
       {/* Adults */}
       <div className="passengers-row">
         <div className="passengers-row-text">
-          <div className="title">{t("adultsLabel")}</div>
+          <div className="title">{t("adults")}:</div>
           <div className="subtitle">{t("adultsAgeHint")}</div>
         </div>
         <div className="passengers-counter">
@@ -1002,6 +1051,7 @@ const handleChildrenChange = (e) => {
         }));
         setView("results");
       }}
+      t={t}   
     />
   </>
 )}
@@ -1009,7 +1059,7 @@ const handleChildrenChange = (e) => {
 
 {view === "stats" && (
   <section className="result-card" style={{ marginTop: "20px" }}>
-    <h2>{t("Routestatistics")}</h2>
+    <h2>{t("routeStatsTitle")}</h2>
 
     {isLoadingStats && <p>Loading statistics...</p>}
 
@@ -1021,11 +1071,11 @@ const handleChildrenChange = (e) => {
       <table className="stats-table">
         <thead>
           <tr>
-            <th>{t("Route")}</th>
-            <th>{t("Ticketsold")}</th>
-            <th>{t("Totalrevenue")} (€)</th>
-            <th>{t("Avgprice")} (€)</th>
-          </tr>
+          <th>{t("routeColumn")}</th>
+          <th>{t("ticketsSoldColumn")}</th>
+          <th>{t("totalRevenueColumn")}</th>
+          <th>{t("avgPriceColumn")}</th>
+        </tr>
         </thead>
         <tbody>
           {stats.map((row, idx) => (

@@ -54,6 +54,37 @@ body {
   opacity: 0.95;
 }
 
+
+.lang-toggle {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  display: flex;
+  gap: 6px;
+}
+
+.lang-btn {
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.lang-btn.active {
+  background: #ffffff;
+  color: #00a652; /* e njëjta me hero green */
+  opacity: 1;
+}
+
+.lang-btn:hover {
+  opacity: 1;
+}
+
+
 /* ===== Seksioni poshtë hero-s ku renditet forma + rezultatet ===== */
 /* <main className="search-section"> */
 .search-section {

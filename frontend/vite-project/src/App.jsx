@@ -4,7 +4,197 @@ import SearchResults from "./SearchResults";
 import { QRCodeCanvas } from "qrcode.react";
 import { QrReader } from "react-qr-reader";
 
+const translations = {
+  en: {
+    heroTitle: "Low cost bus travel",
+    heroSubtitle: "Book bus tickets online for routes between Prishtina and nearby cities",
+    conductorView: "Conductor view",
+    viewStats: "View statistics",
+    oneWay: "One Way",
+    roundTrip: "Round Trip",
+    from: "FROM",
+    to: "TO",
+    oneway: "One way",
+    roundtrip: "Round Trip",
+    departure: "DEPARTURE",
+    return: "RETURN",
+    passengers: "PASSENGERS",
+    search: "Search",
+    outboundTrips: "Outbound trips",
+    returnTrips: "Return trips",
+    ticketReservation: "Ticket reservation",
+    confirmPayment: "Confirm payment",
+    ticketsConfirmed: "ticket confirmed",
+    ticketsConfirmedPlural: "tickets confirmed",
+    checkTicket: "Check ticket",
+    routeStatistics: "Route statistics",
+    route: "Route",
+    ticketsSold: "Tickets sold",
+    totalRevenue: "Total revenue (€)",
+    avgPrice: "Avg price (€)",
+    priceSummary: "Price summary",
+    adults: "Adults",
+    children: "Children (0–14)",
+    totalPrice: "Total price",
+    savings: "You saved",
+    search: "Search",
+    conductorView: "Conductor view",
+    viewStats: "View statistics",
+    ticketReservation: "Ticket reservation",
+    confirmPayment: "Confirm payment",
+    checkTicket: "Check ticket",
+    routeStatistics: "Route statistics",
+    route: "Route",
+    ticketsSold: "Tickets sold",
+    totalRevenue: "Total revenue (€)",
+    avgPrice: "Avg price (€)",
+    priceSummary: "Price summary",
+    adults: "Adults",
+    children: "Children (0–14)",
+    totalPrice: "Total price",
+    savings: "You saved",
+    backToSearch: "Back to search",
+    backToResults: "Back to results",
+    basePriceLabel: "Base price",
+    Passenger: "passenger",
+    adultsAgeHint: "15+ years",
+    childrenLabel: "Children (0–14)",
+    childrenAgeHint: "0 to 14 years",
+    emailLabel: "Email",
+    emailPlaceholder: "you@example.com",
+    adultsLabel: "Adults",
+    conductorPanel: "Conductor panel",
+    scanOrEnter: "Scan ticket or enter token manually:",
+    openScanner: "Open camera scanner",
+    checkTicketBox: "Check ticket",
+    ticketToken: "Ticket token",
+    checkButton: "Check",
+    openCamera: "Open camera scanner",
+    closeCamera: "Close camera scanner",
+    pointCamera: "Point the camera at the QR code. When the token appears below, click “Check”.",
+    ticketReservation: "Ticket reservation",
+    youReserved: "You reserved",
+    ticketSingular: "ticket",
+    ticketPlural: "tickets",
+    seatLabel: "Seat",
+    childDiscountLabel: "Child -10%",
+    priceSummary: "Price summary",
+    adults: "Adults",
+    children: "Children (0–14)",
+    totalPrice: "Total price",
+    youSaved: "You saved",
+    confirmPaymentBtn: "Confirm payment",
+    confirming: "Confirming...",
+    paymentSuccess: "Payment successful. Tickets have been confirmed.",
+    paymentFailed: "Payment failed. Please try again.",
+    routeNotFound: "No valid route was found for this direction. Please choose another From / To combination.",
+    roundTrip: "Round trip",
+  oneWay: "One way",
+  departureDate: "Departure date",
+  returnDate: "Return date",
+  emailForTicket: "Email for ticket",
+  emailPlaceholder: "example@gmail.com",
+  reserving: "Reserving...",
+  reserveTickets: "Reserve tickets",
+  Total:"Total:",
+  Triptype: "Trip Type",
 
+  },
+  sq: {
+    adultsAgeHint: "15+ vjeç",
+    childrenLabel: "Fëmijë (0–14)",
+    childrenAgeHint: "0 deri në 14 vjeç",
+    emailLabel: "Email",
+    emailPlaceholder: "ju@example.com",
+    heroTitle: "Udhëtime me autobus me kosto të ulët",
+    heroSubtitle: "Rezervo bileta autobusi online për linjat ndërmjet Prishtinës dhe qyteteve përreth",
+    conductorView: "Pamja e konduktorit",
+    viewStats: "Statistikat e linjave",
+    oneWay: "Vetëm një drejtim",
+    roundTrip: "Udhëtim vajtje-ardhje",
+    from: "PREJ",
+    to: "DERI",
+    departure: "NISJA",
+    return: "KTHIMI",
+    passengers: "PASAGJERËT",
+    search: "Kërko",
+    oneway: "Një drejtim",
+    roundtrip: "Kthim & vajtje",
+    outboundTrips: "Udhëtimet në dalje",
+    returnTrips: "Udhëtimet në kthim",
+    ticketReservation: "Rezervimi i biletës",
+    confirmPayment: "Konfirmo pagesën",
+    ticketsConfirmed: "biletë u konfirmua",
+    ticketsConfirmedPlural: "bileta u konfirmuan",
+    checkTicket: "Kontrollo biletën",
+    routeStatistics: "Statistikat e linjave",
+    route: "Linja",
+    ticketsSold: "Bileta të shitura",
+    totalRevenue: "Të ardhura totale (€)",
+    avgPrice: "Çmimi mesatar (€)",
+    priceSummary: "Përmbledhje e çmimit",
+    adults: "Të rritur",
+    children: "Fëmijë (0–14)",
+    totalPrice: "Çmimi total",
+    savings: "Kursyet",
+    search: "Kërko",
+    conductorView: "Pamja e konduktorit",
+    viewStats: "Shiko statistikat",
+    ticketReservation: "Rezervimi i biletës",
+    confirmPayment: "Konfirmo pagesën",
+    checkTicket: "Kontrollo biletën",
+    routeStatistics: "Statistikat e linjave",
+    route: "Linja",
+    ticketsSold: "Bileta të shitura",
+    totalRevenue: "Të ardhura totale (€)",
+    avgPrice: "Çmimi mesatar (€)",
+    priceSummary: "Përmbledhje e çmimit",
+    adults: "Të rritur",
+    children: "Fëmijë (0–14)",
+    totalPrice: "Çmimi total",
+    savings: "Kursyet",
+    backToSearch: "Kthehu te kërkimi",
+    backToResults: "Kthehu te rezultatet",
+    basePriceLabel: "Çmimi bazë",
+    Passenger: "për pasagjer",
+    adultsLabel: "Të rritur",
+    conductorPanel: "Paneli i konduktorit",
+    scanOrEnter: "Skanoni biletën ose shkruani token-in manualisht:",
+    openScanner: "Hape kamerën për skanim",
+    checkTicketBox: "Kontrollo biletën",
+    ticketToken: "Token i biletës",
+    checkButton: "Kontrollo",
+    openCamera: "Hap kamerën",
+    closeCamera: "Mbyll kamerën",
+    pointCamera: "Drejto kamerën kah kodi QR. Kur të shfaqet token më poshtë, kliko “Kontrollo”.",
+    ticketReservation: "Rezervimi i biletës",
+    youReserved: "Keni rezervuar",
+    ticketSingular: "biletë",
+    ticketPlural: "bileta",
+    seatLabel: "Ulësja",
+    childDiscountLabel: "Fëmijë -10%",
+    priceSummary: "Përmbledhje e çmimit",
+    adults: "Të rritur",
+    children: "Fëmijë (0–14)",
+    totalPrice: "Çmimi total",
+    youSaved: "Keni kursyer",
+    confirmPaymentBtn: "Konfirmo pagesën",
+    confirming: "Duke u konfirmuar...",
+    paymentSuccess: "Pagesa u krye me sukses. Biletat u konfirmuan.",
+    paymentFailed: "Pagesa dështoi. Ju lutem provoni përsëri.",
+    routeNotFound: "Nuk u gjet asnjë linjë valide për këtë drejtim. Ju lutemi zgjidhni kombinim tjetër Prej / Deri.",
+  roundTrip: "Kthim & vajtje",
+  oneWay: "Një drejtim",
+  departureDate: "Data e nisjes",
+  returnDate: "Data e kthimit",
+  emailForTicket: "Email për biletën",
+  emailPlaceholder: "shembull@gmail.com",
+  reserving: "Duke rezervuar...",
+  reserveTickets: "Rezervo biletat",
+  Total: "Totali:",
+  Triptype: "Lloji i udhëtimit",
+  },
+};
 
 
 // Linjat tona me çmimet bazë (për një drejtim)
@@ -78,8 +268,10 @@ function App() {
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
 
-  // view: "search" | "results" | "payment"
   const [view, setView] = useState("search");
+  const [lang, setLang] = useState("en");
+
+  const t = (key) => translations[lang]?.[key] || key;
 
 
   // për kontrollimin e biletës
@@ -425,19 +617,37 @@ const handleChildrenChange = (e) => {
   </button>
 )}
 
-      {/* HERO */}
-      <header className="hero">
-        <h1>Low cost bus travel</h1>
-        <p>
-          Book bus tickets online for routes between Prishtina and nearby cities
-        </p>
-      </header>
+{/* Language toggle */}
+    <div className="lang-toggle">
+      <button
+        type="button"
+        className={lang === "en" ? "lang-btn active" : "lang-btn"}
+        onClick={() => setLang("en")}
+      >
+        EN
+      </button>
+      <button
+        type="button"
+        className={lang === "sq" ? "lang-btn active" : "lang-btn"}
+        onClick={() => setLang("sq")}
+      >
+        SQ
+      </button>
+    </div>
 
+    <header className="hero">
+      <h1>{t("heroTitle")}</h1>
+      <p>{t("heroSubtitle")}</p>
+      
+    </header>
+
+      
       
 
       <main className="search-section">
         {/* --------------- FAQJA 1: KËRKIMI --------------- */}
         {view === "search" && (
+          
           <div className="search-card">
             {/* Tipi i udhëtimit */}
             <div className="trip-type-row">
@@ -449,7 +659,7 @@ const handleChildrenChange = (e) => {
                   checked={tripType === "one-way"}
                   onChange={() => setTripType("one-way")}
                 />
-                <span>One Way</span>
+                <span>{t("oneway")}</span>
               </label>
 
               <label className="radio">
@@ -460,7 +670,7 @@ const handleChildrenChange = (e) => {
                   checked={tripType === "round-trip"}
                   onChange={() => setTripType("round-trip")}
                 />
-                <span>Round Trip</span>
+                <span>{t("roundtrip")}</span>
               </label>
             </div>
 
@@ -471,7 +681,7 @@ const handleChildrenChange = (e) => {
             <div className="row city-row">
 
                 <div className="field">
-                  <label>From</label>
+                  <label>{t("from")}</label>
                   <select
                     value={from}
                     onChange={(e) => setFrom(e.target.value)}
@@ -490,7 +700,7 @@ const handleChildrenChange = (e) => {
                 </button>
 
                 <div className="field">
-                  <label>To</label>
+                  <label>{t("to")}</label>
                   <select
                     value={to}
                     onChange={(e) => setTo(e.target.value)}
@@ -504,7 +714,7 @@ const handleChildrenChange = (e) => {
                 </div>
               
                   <div className="field">
-    <label>Email</label>
+    <label>{t("email")}</label>
     <input
         type="email"
         value={email}
@@ -520,7 +730,7 @@ const handleChildrenChange = (e) => {
               {/* Dates + Passengers */}
               <div className="row date-passenger-row">
                 <div className="field">
-                  <label>Departure</label>
+                  <label>{t("departure")}</label>
                   <input
                     type="date"
                     value={departureDate}
@@ -530,7 +740,7 @@ const handleChildrenChange = (e) => {
                 </div>
 
                 <div className="field">
-                  <label>Return</label>
+                  <label>{t("return")}</label>
                   <input
                     type="date"
                     value={returnDate}
@@ -541,7 +751,7 @@ const handleChildrenChange = (e) => {
                 </div>
 
                 <div className="field passengers-dropdown">
-  <label>Passengers</label>
+  <label>{t("passengers")}</label>
 
   {/* Butoni që shfaq totalin dhe hap menunë */}
   <button
@@ -558,8 +768,8 @@ const handleChildrenChange = (e) => {
       {/* Adults */}
       <div className="passengers-row">
         <div className="passengers-row-text">
-          <div className="title">Adults</div>
-          <div className="subtitle">15+ years</div>
+          <div className="title">{t("adultsLabel")}</div>
+          <div className="subtitle">{t("adultsAgeHint")}</div>
         </div>
         <div className="passengers-counter">
           <button
@@ -583,8 +793,8 @@ const handleChildrenChange = (e) => {
       {/* Children */}
       <div className="passengers-row">
         <div className="passengers-row-text">
-          <div className="title">Children</div>
-          <div className="subtitle">0 to 14 years</div>
+          <div className="title">{t("children")}</div>
+          <div className="subtitle">{t("childrenAgeHint")}</div>
         </div>
         <div className="passengers-counter">
           <button
@@ -614,7 +824,7 @@ const handleChildrenChange = (e) => {
 
               <div className="row row-bottom">
                 <button type="submit" className="search-button">
-                  Search
+                  {t("search")}
                 </button>
               </div>
             </form>
@@ -622,10 +832,10 @@ const handleChildrenChange = (e) => {
             {/* Price Summary */}
             <div className="price-summary">
               <p>
-                Base price:{" "}
+                {t("basePriceLabel")}:{" "}
                 {basePrice ? (
                   <>
-                    <strong>{basePrice.toFixed(2)} €</strong> / passenger
+                    <strong>{basePrice.toFixed(2)} €</strong> / {t("Passenger")}
                   </>
                 ) : (
                   "- €"
@@ -646,7 +856,7 @@ const handleChildrenChange = (e) => {
     className="top-button"
     onClick={() => setView("conductor")}
   >
-    Conductor view
+    {t("conductorView")}
   </button>
 
     <button
@@ -654,7 +864,7 @@ const handleChildrenChange = (e) => {
     className="top-button"
     onClick={handleLoadStats}
   >
-    View statistics
+    {t("viewStats")}
   </button>
 
 </div>
@@ -676,7 +886,7 @@ const handleChildrenChange = (e) => {
             checked={tripType === "one-way"}
             onChange={() => setTripType("one-way")}
           />
-          <span>One Way</span>
+          <span>{t("oneWay")}</span>
         </label>
 
         <label className="radio">
@@ -687,7 +897,7 @@ const handleChildrenChange = (e) => {
             checked={tripType === "round-trip"}
             onChange={() => setTripType("round-trip")}
           />
-          <span>Round Trip</span>
+          <span>{t("roundTrip")}</span>
         </label>
       </div>
 
@@ -696,7 +906,7 @@ const handleChildrenChange = (e) => {
         {/* From & To */}
         <div className="row city-row">
           <div className="field">
-            <label>From</label>
+            <label>{t("from")}</label>
             <select
               value={from}
               onChange={(e) => setFrom(e.target.value)}
@@ -716,7 +926,7 @@ const handleChildrenChange = (e) => {
           </button>
 
           <div className="field">
-            <label>To</label>
+            <label>{t("to")}</label>
             <select
               value={to}
               onChange={(e) => setTo(e.target.value)}
@@ -738,7 +948,7 @@ const handleChildrenChange = (e) => {
         {/* Dates + Passengers */}
         <div className="row date-passenger-row">
           <div className="field">
-            <label>Departure</label>
+            <label>{t("departure")}</label>
             <input
               type="date"
               value={departureDate}
@@ -749,7 +959,7 @@ const handleChildrenChange = (e) => {
           </div>
 
           <div className="field">
-            <label>Return</label>
+            <label>{t("return")}</label>
             <input
               type="date"
               value={returnDate}
@@ -760,7 +970,7 @@ const handleChildrenChange = (e) => {
           </div>
 
           <div className="field passengers-dropdown">
-            <label>Passengers</label>
+            <label>{t("passengers")}</label>
 
             <button
               type="button"
@@ -799,7 +1009,7 @@ const handleChildrenChange = (e) => {
 
 {view === "stats" && (
   <section className="result-card" style={{ marginTop: "20px" }}>
-    <h2>Route statistics</h2>
+    <h2>{t("Routestatistics")}</h2>
 
     {isLoadingStats && <p>Loading statistics...</p>}
 
@@ -811,10 +1021,10 @@ const handleChildrenChange = (e) => {
       <table className="stats-table">
         <thead>
           <tr>
-            <th>Route</th>
-            <th>Tickets sold</th>
-            <th>Total revenue (€)</th>
-            <th>Avg price (€)</th>
+            <th>{t("Route")}</th>
+            <th>{t("Ticketsold")}</th>
+            <th>{t("Totalrevenue")} (€)</th>
+            <th>{t("Avgprice")} (€)</th>
           </tr>
         </thead>
         <tbody>
@@ -840,91 +1050,91 @@ const handleChildrenChange = (e) => {
 
 
         {/* --------------- FAQJA 2: REZULTATET --------------- */}
-        {view === "results" && searchResult && (
+{view === "results" && searchResult && (
+  <>
+    {/* REZULTATI I KËRKIMIT */}
+    {searchResult && (
+      <section className="result-card">
+        {searchResult.error === "route-not-found" ? (
+          <p className="result-error">
+            {t("routeNotFound")}
+          </p>
+        ) : (
           <>
-            
-            
+            <h2>{t("Searchresult")}</h2>
 
-
- 
-
-
-            {/* REZULTATI I KËRKIMIT */}
-            {searchResult && (
-  <section className="result-card">
-    {searchResult.error === "route-not-found" ? (
-      <p className="result-error">
-        No valid route was found for this direction. Please choose another
-        From / To combination.
-      </p>
-    ) : (
-      <>
-        <h2>Search result</h2>
-        <ul className="result-details">
-          <li>
-            <strong>Route:</strong> {searchResult.from} → {searchResult.to}
-          </li>
-          <li>
-            <strong>Trip type:</strong>{" "}
-            {searchResult.trip_type === "round-trip"
-              ? "Round trip"
-              : "One way"}
-          </li>
-          <li>
-            <strong>Departure date:</strong> {searchResult.departureDate}
-          </li>
-          {searchResult.trip_type === "round-trip" &&
-            searchResult.returnDate && (
+            <ul className="result-details">
               <li>
-                <strong>Return date:</strong> {searchResult.returnDate}
+                <strong>{t("Route:")}</strong> {searchResult.from} → {searchResult.to}
               </li>
-            )}
-          <li>
-            <strong>Passengers:</strong> {searchResult.passengers}
-          </li>
-          <li>
-            <strong>Base price:</strong>{" "}
-            {searchResult.price_per_leg.toFixed(2)} € / passenger (one way)
-          </li>
-          <li>
-            <strong>Total:</strong>{" "}
-            {searchResult.total_price.toFixed(2)} €
-          </li>
-        </ul>
 
-        <div className="field" style={{ marginTop: "16px" }}>
-          <label>Email for ticket</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@gmail.com"
-            required
-          />
-        </div>
+              <li>
+                <strong>{t("Triptype")}:</strong>{" "}
+                {searchResult.trip_type === "round-trip"
+                  ? t("roundTrip")
+                  : t("oneWay")}
+              </li>
 
-        <button
-          type="button"
-          className="search-button reserve-button"
-          onClick={handleReserve}
-          disabled={isReserving || !email}
-          style={{ marginTop: "16px" }}
-        >
-          {isReserving ? "Reserving..." : "Reserve tickets"}
-        </button>
-      </>
-    )}
-  </section>
-)}
+              <li>
+                <strong>{t("departureDate")}:</strong> {searchResult.departureDate}
+              </li>
 
+              {searchResult.trip_type === "round-trip" && searchResult.returnDate && (
+                <li>
+                  <strong>{t("returnDate")}:</strong> {searchResult.returnDate}
+                </li>
+              )}
+
+              <li>
+                <strong>{t("Passengers")}:</strong> {searchResult.passengers}
+              </li>
+
+              <li>
+                <strong>{t("basePriceLabel")}:</strong>{" "}
+                {searchResult.price_per_leg.toFixed(2)} € / {t("Passenger")}
+              </li>
+
+              <li>
+                <strong>{t("Total:")}</strong>{" "}
+                {searchResult.total_price.toFixed(2)} €
+              </li>
+            </ul>
+
+            <div className="field" style={{ marginTop: "16px" }}>
+              <label>{t("emailForTicket")}</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("emailPlaceholder")}
+                required
+              />
+            </div>
+
+            <button
+              type="button"
+              className="search-button reserve-button"
+              onClick={handleReserve}
+              disabled={isReserving || !email}
+              style={{ marginTop: "16px" }}
+            >
+              {isReserving ? t("reserving") : t("reserveTickets")}
+            </button>
           </>
         )}
+      </section>
+    )}
+  </>
+)}
+
+
 
 
         {view === "conductor" && (
+          
   <div style={{ textAlign: "center", marginTop: "40px" }}>
-    <h2>Conductor panel</h2>
-    <p>Scan ticket or enter token manually:</p>
+    <h2>{t("conductorPanel")}</h2>
+    <p>{t("scanOrEnter")}:</p>
 
     {/* Buton për ndez/fik kamerën */}
     <button
@@ -933,7 +1143,7 @@ const handleChildrenChange = (e) => {
       style={{ marginBottom: "20px" }}
       onClick={() => setScanMode((prev) => !prev)}
     >
-      {scanMode ? "Close camera" : "Open camera scanner"}
+      {scanMode ? t("closeCamera") : t("openCamera")}
     </button>
 
     {/* KËTU ËSHTË SKANERI I VËRTETË */}
@@ -955,7 +1165,7 @@ const handleChildrenChange = (e) => {
           videoStyle={{ width: "100%" }}
         />
         <p style={{ fontSize: "14px", marginTop: "6px" }}>
-          Point the camera at the QR code. When the token appears below, click "Check".
+          {t("pointCamera")}
         </p>
       </div>
     )}
@@ -965,7 +1175,7 @@ const handleChildrenChange = (e) => {
       className="result-card"
       style={{ maxWidth: "500px", margin: "0 auto" }}
     >
-      <h3>Check ticket</h3>
+      <h3>{t("checkTicket")}</h3>
 
       <input
         value={validateToken}
@@ -973,7 +1183,7 @@ const handleChildrenChange = (e) => {
         placeholder="Ticket token"
       />
 
-      <button onClick={handleValidateTicket}>Check</button>
+      <button onClick={handleValidateTicket}>{t("checkButton")}</button>
 
       {validateError && (
         <p style={{ color: "red", marginTop: "8px" }}>{validateError}</p>
@@ -982,13 +1192,13 @@ const handleChildrenChange = (e) => {
             {validateResult && (
         <>
           <ul className="result-details">
-            <li>Status: {validateResult.status}</li>
+            <li>{t("status")}: {validateResult.status}</li>
             <li>
-              Route: {validateResult.from} → {validateResult.to}
+              {t("route")}: {validateResult.from} → {validateResult.to}
             </li>
-            <li>Departure: {validateResult.departure_at}</li>
-            <li>Seat: {validateResult.seat_no}</li>
-            <li>Price: {validateResult.price} €</li>
+            <li>{t("departure")}: {validateResult.departure_at}</li>
+            <li>{t("seat")}: {validateResult.seat_no}</li>
+            <li>{t("price")}: {validateResult.price} €</li>
           </ul>
 
           {/* Butoni "Mark as used" vetëm kur statusi është paid */}
@@ -999,7 +1209,7 @@ const handleChildrenChange = (e) => {
               style={{ marginTop: "10px" }}
               onClick={handleCheckin}
             >
-              Mark as used
+              {t("Markasused")}
             </button>
           )}
 
@@ -1028,40 +1238,45 @@ const handleChildrenChange = (e) => {
         {view === "payment" && reservationResult && (
           <section className="result-card">
 
-    <h2>Ticket reservation</h2>
+    <h2>{t("ticketReservation")}</h2>
 
     <p>
-      You reserved <strong>{reservationResult.count}</strong> ticket(s)
+      {t("youReserved")} <strong>
+        {reservationResult.count}{" "}
+        {reservationResult.count === 1
+          ? t("ticketSingular")
+          : t("ticketPlural")}
+      </strong>
     </p>
 
         <ul className="result-details">
-      {reservationResult.tickets.map((t, idx) => (
+      {reservationResult.tickets.map((ticket, idx) => (
         <li key={idx} style={{ marginBottom: "20px" }}>
-          Seat: {t.seat_no} — {t.price} €
-          {t.passenger_type === "child" && (
-            <span> (Child -10%)</span>
+          {t("seatLabel")}: {ticket.seat_no} — {ticket.price} €
+          {ticket.passenger_type === "child" && (
+            <span> ({t("childDiscountLabel")})</span>
           )}
           <br />
 
           {/* QR Code */}
           <div style={{ marginTop: "10px" }}>
-            <QRCodeCanvas value={t.token} size={120} />
+            <QRCodeCanvas value={ticket.token} size={120} />
           </div>
         </li>
       ))}
     </ul>
     {priceSummary && (
       <div style={{ marginTop: "16px" }}>
-        <h3>Price summary</h3>
+        <h3>{t("priceSummary")}</h3>
         <ul className="result-details">
-          <li>Adults: {priceSummary.adultCount}</li>
-          <li>Children (0–14): {priceSummary.childCount}</li>
+          <li>{t("adults")}:{priceSummary.adultCount}</li>
+          <li>{t("children")}: (0–14): {priceSummary.childCount}</li>
           <li>
-            Total price: {priceSummary.totalPrice.toFixed(2)} €
+            {t("totalPrice")}: {priceSummary.totalPrice.toFixed(2)} €
           </li>
           {priceSummary.savings > 0 && (
             <li>
-              You saved {priceSummary.savings.toFixed(2)} € with 10% child discount.
+              {t("Yousaved")} {priceSummary.savings.toFixed(2)} € with 10% child discount.
             </li>
           )}
         </ul>
@@ -1079,7 +1294,7 @@ const handleChildrenChange = (e) => {
   disabled={isPaying}
   style={{ marginTop: "12px" }}
 >
-  {isPaying ? "Confirming..." : "Confirm payment"}
+  {isPaying ? t("confirming") : t("confirmPaymentBtn")}
 </button>
 
 

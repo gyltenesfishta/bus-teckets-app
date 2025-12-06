@@ -307,6 +307,8 @@ function App() {
 
   // rezultati i fundit i Search
   const [searchResult, setSearchResult] = useState(null);
+  const [searchError, setSearchError] = useState(null);
+
 
   // state për rezervimin real
   const [reservationResult, setReservationResult] = useState(null);
@@ -459,14 +461,28 @@ const handleChildrenChange = (e) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // nëse nuk ka linjë valide (p.sh. From == To)
-    if (!basePrice) {
-      setSearchResult({
-        error: "route-not-found",
-      });
-      setView("trips");
-      return;
-    }
+     setSearchError(null);
+
+  // 1) Nuk ka asnjë pasagjer
+  if (passengers <= 0) {
+    setSearchError("Please select at least one passenger.");
+    return;
+  }
+
+  // 2) Round trip me datë kthimi më të vogël se nisja
+  if (isRoundTrip && returnDate < departureDate) {
+    setSearchError("Return date cannot be earlier than departure date.");
+    return;
+  }
+
+  // 3) nëse nuk ka linjë valide (p.sh. From == To)
+  if (!basePrice) {
+    setSearchResult({
+      error: "route-not-found",
+    });
+    setView("trips");
+    return;
+  }
 
     const price_per_leg = basePrice;
     const legs = isRoundTrip ? 2 : 1;
@@ -867,16 +883,26 @@ const handleChildrenChange = (e) => {
   )}
 </div>
               </div>
-
-
-
-
               <div className="row row-bottom">
                 <button type="submit" className="search-button">
                   {t("search")}
                 </button>
               </div>
             </form>
+
+            {searchError && (
+  <p
+    style={{
+      marginTop: "10px",
+      color: "#b91c1c",
+      fontSize: "14px",
+      textAlign: "center",
+    }}
+  >
+    {searchError}
+  </p>
+)}
+
 
             {/* Price Summary */}
             <div className="price-summary">

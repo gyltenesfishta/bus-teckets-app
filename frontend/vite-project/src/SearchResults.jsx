@@ -79,14 +79,14 @@ export default function SearchResults({ searchParams, onSelectTrip, t }) {
 
       {/* Lista e udhëtimeve */}
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-        {route.trips.map((trip) => {
+        {route.trips.map((trip, idx) => {
           const duration = getDuration(trip.departure, trip.arrival);
           const isExpanded = expandedTripId === trip.id;
           const stopSchedule = isExpanded ? getStopSchedule(route, trip) : [];
 
           return (
             <div
-              key={trip.id}
+              key={`${trip.id}-${idx}`}
               style={{
                 borderRadius: "12px",
                 border: "1px solid #e5e7eb",

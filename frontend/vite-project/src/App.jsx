@@ -6,243 +6,235 @@ import { QrReader } from "react-qr-reader";
 
 const translations = {
   en: {
+    // Hero + header
     heroTitle: "Low cost bus travel",
-    heroSubtitle: "Book bus tickets online for routes between Prishtina and nearby cities",
-    conductorView: "Conductor view",
-    viewStats: "View statistics",
-    oneWay: "One Way",
-    roundTrip: "Round Trip",
+    heroSubtitle:
+      "Book bus tickets online for routes between Prishtina and nearby cities",
+
+    // Search form
+    oneWay: "One way",
+    roundTrip: "Round trip",
+    oneway: "One way",
+    roundtrip: "Round trip",
     from: "FROM",
     to: "TO",
-    oneway: "One way",
-    roundtrip: "Round Trip",
     departure: "DEPARTURE",
     return: "RETURN",
     passengers: "PASSENGERS",
-    search: "Search",
-    outboundTrips: "Outbound trips",
-    returnTrips: "Return trips",
-    ticketReservation: "Ticket reservation",
-    confirmPayment: "Confirm payment",
-    ticketsConfirmed: "ticket confirmed",
-    ticketsConfirmedPlural: "tickets confirmed",
-    checkTicket: "Check ticket",
-    routeStatistics: "Route statistics",
-    route: "Route",
-    ticketsSold: "Tickets sold",
-    totalRevenue: "Total revenue (€)",
-    avgPrice: "Avg price (€)",
-    priceSummary: "Price summary",
-    adults: "Adults",
-    children: "Children (0–14)",
-    totalPrice: "Total price",
-    savings: "You saved",
-    search: "Search",
-    conductorView: "Conductor view",
-    viewStats: "View statistics",
-    ticketReservation: "Ticket reservation",
-    confirmPayment: "Confirm payment",
-    checkTicket: "Check ticket",
-    routeStatistics: "Route statistics",
-    route: "Route",
-    ticketsSold: "Tickets sold",
-    totalRevenue: "Total revenue (€)",
-    avgPrice: "Avg price (€)",
-    priceSummary: "Price summary",
-    adults: "Adults",
-    children: "Children (0–14)",
-    totalPrice: "Total price",
-    savings: "You saved",
-    backToSearch: "Back to search",
-    backToResults: "Back to results",
-    basePriceLabel: "Base price",
-    Passenger: "passenger",
-    adultsAgeHint: "15+ years",
-    childrenLabel: "Children (0–14)",
-    childrenAgeHint: "0 to 14 years",
+    Passengers: "Passengers",
+
+    // Email + passengers popup
     emailLabel: "Email",
     emailPlaceholder: "you@example.com",
-    adultsLabel: "Adults",
-    conductorPanel: "Conductor panel",
-    scanOrEnter: "Scan ticket or enter token manually:",
-    openScanner: "Open camera scanner",
-    checkTicketBox: "Check ticket",
-    ticketToken: "Ticket token",
-    checkButton: "Check",
-    openCamera: "Open camera scanner",
-    closeCamera: "Close camera scanner",
-    pointCamera: "Point the camera at the QR code. When the token appears below, click “Check”.",
-    ticketReservation: "Ticket reservation",
-    youReserved: "You reserved",
-    ticketSingular: "ticket",
-    ticketPlural: "tickets",
-    seatLabel: "Seat",
-    childDiscountLabel: "Child -10%",
-    priceSummary: "Price summary",
     adults: "Adults",
+    adultsLabel: "Adults",
+    adultsAgeHint: "15+ years",
     children: "Children (0–14)",
-    totalPrice: "Total price",
-    youSaved: "You saved",
-    confirmPaymentBtn: "Confirm payment",
-    confirming: "Confirming...",
-    paymentSuccess: "Payment successful. Tickets have been confirmed.",
-    paymentFailed: "Payment failed. Please try again.",
-    routeNotFound: "No valid route was found for this direction. Please choose another From / To combination.",
-    roundTrip: "Round trip",
-  oneWay: "One way",
-  departureDate: "Departure date",
-  returnDate: "Return date",
-  emailForTicket: "Email for ticket",
-  emailPlaceholder: "example@gmail.com",
-  reserving: "Reserving...",
-  reserveTickets: "Reserve tickets",
-  Total:"Total:",
-  Triptype: "Trip Type",
-  Select: "Select",
-  outboundTrips: "Outbound trips",
-  stops: "stops",
-  bus: "Bus",
-  direct: "Direct",
-  select: "Select",
-  noTripsFound: "No trips found",
-  tryAnother: "Try selecting another destination",
-  busStation: "bus station",
-  outboundTrips: "Outbound trips",
+    childrenLabel: "Children (0–14)",
+    childrenAgeHint: "0 to 14 years",
+
+    // Search button
+    search: "Search",
+
+    // Trips list (SearchResults)
+    outboundTrips: "Outbound trips",
+    returnTrips: "Return trips",
     busStation: "bus station",
     stops: "stops",
     bus: "Bus",
     direct: "Direct",
     select: "Select",
     noTripsFound: "No trips found",
-    tryAnother: "Try selecting another destination.",
+    tryAnother: "Try selecting another destination",
+
+    // Result card (page 2)
+    Searchresult: "Searchresult",
+    "Route:": "Route:",
+    Triptype: "Trip Type",
+    departureDate: "Departure date",
+    returnDate: "Return date",
+    basePriceLabel: "Base price",
+    Passenger: "passenger",
+    Total: "Total:",
+    totalPrice: "Total price",
+    TotalLabel: "Total",
+    emailForTicket: "Email for ticket",
+    reserving: "Reserving...",
+    reserveTickets: "Reserve tickets",
+
+    // Time labels (results + payment)
+    departureTimeLabel: "Departure time",
+    arrivalTimeLabel: "Arrival time",
+    returnTripHeading: "Return trip",
+    returnRouteLabel: "Return route",
+    returnDepartureTimeLabel: "Return departure time",
+    returnArrivalTimeLabel: "Return arrival time",
+
+    // Ticket reservation (payment page)
+    ticketReservation: "Ticket reservation",
+    youReserved: "You reserved",
+    ticketSingular: "ticket",
+    ticketPlural: "tickets",
+    seatLabel: "Seat",
+    priceSummary: "Price summary",
+    youSaved: "You saved",
+    Yousaved: "You saved", // për t("Yousaved") në kod
+    confirmPaymentBtn: "Confirm payment",
+    confirming: "Confirming...",
+    paymentSuccess: "Payment successful. Tickets have been confirmed.",
+    paymentFailed: "Payment failed. Please try again.",
+    ticketsConfirmed: "ticket confirmed",
+    ticketsConfirmedPlural: "tickets confirmed",
+
+    // Conductor panel
+    conductorView: "Conductor view",
+    conductorPanel: "Conductor panel",
+    viewStats: "View statistics",
+    scanOrEnter: "Scan ticket or enter token manually",
+    openCamera: "Open camera scanner",
+    closeCamera: "Close camera scanner",
+    pointCamera:
+      "Point the camera at the QR code. When the token appears below, click “Check”.",
+    checkTicket: "Check ticket",
+    ticketToken: "Ticket token",
+    checkButton: "Check",
+    status: "Status",
+    route: "Route",
+    seat: "Seat",
+    price: "Price",
+    Markasused: "Mark as used",
+
+    // Stats
     routeStatsTitle: "Route statistics",
     routeColumn: "Route",
     ticketsSoldColumn: "Tickets sold",
     totalRevenueColumn: "Total revenue (€)",
     avgPriceColumn: "Avg price (€)",
 
+    // Misc
+    routeStatistics: "Route statistics",
+    routeNotFound:
+      "No valid route was found for this direction. Please choose another From / To combination.",
+    basePriceLabelShort: "Base price",
   },
+
   sq: {
-    routeStatsTitle: "Statistikat e linjave",
-    routeColumn: "Linja",
-    ticketsSoldColumn: "Bileta të shitura",
-    totalRevenueColumn: "Të ardhura totale (€)",
-    avgPriceColumn: "Çmimi mesatar (€)",
+    // Hero + header
+    heroTitle: "Udhëtime me autobus me kosto të ulët",
+    heroSubtitle:
+      "Rezervo bileta autobusi online për linjat ndërmjet Prishtinës dhe qyteteve përreth",
+
+    // Search form
+    oneWay: "Një drejtim",
+    roundTrip: "Kthim & vajtje",
+    oneway: "Një drejtim",
+    roundtrip: "Kthim & vajtje",
+    from: "PREJ",
+    to: "DERI",
+    departure: "NISJA",
+    return: "KTHIMI",
+    passengers: "PASAGJERËT",
+    Passengers: "Pasagjerët",
+
+    // Email + passengers popup
+    emailLabel: "Email",
+    emailPlaceholder: "ju@shembull.com",
+    adults: "Të rritur",
+    adultsLabel: "Të rritur",
+    adultsAgeHint: "15+ vjeç",
+    children: "Fëmijë (0–14)",
+    childrenLabel: "Fëmijë (0–14)",
+    childrenAgeHint: "0 deri në 14 vjeç",
+
+    // Search button
+    search: "Kërko",
+
+    // Trips list (SearchResults)
     outboundTrips: "Udhëtime të daljes",
+    returnTrips: "Udhëtime të kthimit",
     busStation: "stacion i autobusëve",
     stops: "ndalesa",
     bus: "Autobus",
     direct: "Direkt",
     select: "Zgjidh",
     noTripsFound: "Nuk u gjetën udhëtime",
-    tryAnother: "Provo një destinacion tjetër.",
-    adultsAgeHint: "15+ vjeç",
-    childrenLabel: "Fëmijë (0–14)",
-    childrenAgeHint: "0 deri në 14 vjeç",
-    emailLabel: "Email",
-    emailPlaceholder: "ju@example.com",
-    heroTitle: "Udhëtime me autobus me kosto të ulët",
-    heroSubtitle: "Rezervo bileta autobusi online për linjat ndërmjet Prishtinës dhe qyteteve përreth",
-    conductorView: "Pamja e konduktorit",
-    viewStats: "Statistikat e linjave",
-    oneWay: "Vetëm një drejtim",
-    roundTrip: "Udhëtim vajtje-ardhje",
-    from: "PREJ",
-    to: "DERI",
-    departure: "NISJA",
-    return: "KTHIMI",
-    passengers: "PASAGJERËT",
-    search: "Kërko",
-    oneway: "Një drejtim",
-    roundtrip: "Kthim & vajtje",
-    outboundTrips: "Udhëtimet në dalje",
-    returnTrips: "Udhëtimet në kthim",
-    ticketReservation: "Rezervimi i biletës",
-    confirmPayment: "Konfirmo pagesën",
-    ticketsConfirmed: "biletë u konfirmua",
-    ticketsConfirmedPlural: "bileta u konfirmuan",
-    checkTicket: "Kontrollo biletën",
-    routeStatistics: "Statistikat e linjave",
-    route: "Linja",
-    ticketsSold: "Bileta të shitura",
-    totalRevenue: "Të ardhura totale (€)",
-    avgPrice: "Çmimi mesatar (€)",
-    priceSummary: "Përmbledhje e çmimit",
-    adults: "Të rritur",
-    children: "Fëmijë (0–14)",
-    totalPrice: "Çmimi total",
-    savings: "Kursyet",
-    search: "Kërko",
-    conductorView: "Pamja e konduktorit",
-    viewStats: "Shiko statistikat",
-    ticketReservation: "Rezervimi i biletës",
-    confirmPayment: "Konfirmo pagesën",
-    checkTicket: "Kontrollo biletën",
-    routeStatistics: "Statistikat e linjave",
-    route: "Linja",
-    ticketsSold: "Bileta të shitura",
-    totalRevenue: "Të ardhura totale (€)",
-    avgPrice: "Çmimi mesatar (€)",
-    priceSummary: "Përmbledhje e çmimit",
-    adults: "Të rritur",
-    children: "Fëmijë (0–14)",
-    totalPrice: "Çmimi total",
-    savings: "Kursyet",
-    backToSearch: "Kthehu te kërkimi",
-    backToResults: "Kthehu te rezultatet",
+    tryAnother: "Provo një destinacion tjetër",
+
+    // Result card (page 2)
+    Searchresult: "Rezultati i kërkimit",
+    "Route:": "Linja:",
+    Triptype: "Lloji i udhëtimit",
+    departureDate: "Data e nisjes",
+    returnDate: "Data e kthimit",
     basePriceLabel: "Çmimi bazë",
     Passenger: "për pasagjer",
-    adultsLabel: "Të rritur",
-    conductorPanel: "Paneli i konduktorit",
-    scanOrEnter: "Skanoni biletën ose shkruani token-in manualisht:",
-    openScanner: "Hape kamerën për skanim",
-    checkTicketBox: "Kontrollo biletën",
-    ticketToken: "Token i biletës",
-    checkButton: "Kontrollo",
-    openCamera: "Hap kamerën",
-    closeCamera: "Mbyll kamerën",
-    pointCamera: "Drejto kamerën kah kodi QR. Kur të shfaqet token më poshtë, kliko “Kontrollo”.",
+    Total: "Totali:",
+    totalPrice: "Çmimi total",
+    TotalLabel: "Totali",
+    emailForTicket: "Email për biletën",
+    reserving: "Duke rezervuar...",
+    reserveTickets: "Rezervo biletat",
+
+    // Time labels (results + payment)
+    departureTimeLabel: "Ora e nisjes",
+    arrivalTimeLabel: "Ora e mbërritjes",
+    returnTripHeading: "Udhëtimi i kthimit",
+    returnRouteLabel: "Linja e kthimit",
+    returnDepartureTimeLabel: "Ora e nisjes (kthim)",
+    returnArrivalTimeLabel: "Ora e mbërritjes (kthim)",
+
+    // Ticket reservation (payment page)
     ticketReservation: "Rezervimi i biletës",
     youReserved: "Keni rezervuar",
     ticketSingular: "biletë",
     ticketPlural: "bileta",
     seatLabel: "Ulësja",
-    childDiscountLabel: "Fëmijë -10%",
     priceSummary: "Përmbledhje e çmimit",
-    adults: "Të rritur",
-    children: "Fëmijë (0–14)",
-    totalPrice: "Çmimi total",
     youSaved: "Keni kursyer",
+    Yousaved: "Keni kursyer", // për t("Yousaved") në kod
     confirmPaymentBtn: "Konfirmo pagesën",
     confirming: "Duke u konfirmuar...",
     paymentSuccess: "Pagesa u krye me sukses. Biletat u konfirmuan.",
     paymentFailed: "Pagesa dështoi. Ju lutem provoni përsëri.",
-    routeNotFound: "Nuk u gjet asnjë linjë valide për këtë drejtim. Ju lutemi zgjidhni kombinim tjetër Prej / Deri.",
-  roundTrip: "Kthim & vajtje",
-  oneWay: "Një drejtim",
-  departureDate: "Data e nisjes",
-  returnDate: "Data e kthimit",
-  emailForTicket: "Email për biletën",
-  emailPlaceholder: "shembull@gmail.com",
-  reserving: "Duke rezervuar...",
-  reserveTickets: "Rezervo biletat",
-  Total: "Totali:",
-  Triptype: "Lloji i udhëtimit",
-  stops: "ndalesa",
-    bus: "Autobus",
-    direct: "Direkt",
-    select: "Zgjidh",
-    outboundTrips: "Udhëtime të daljes",
-  stops: "ndalesa",
-  bus: "Autobus",
-  direct: "Direkt",
-  select: "Zgjedh",
-  noTripsFound: "Nuk u gjetën udhëtime",
-  tryAnother: "Provo një destinacion tjetër",
-  busStation: "stacion i autobusëve",
-  
+    ticketsConfirmed: "biletë u konfirmua",
+    ticketsConfirmedPlural: "bileta u konfirmuan",
+
+    // Conductor panel
+    conductorView: "Pamja e konduktorit",
+    conductorPanel: "Paneli i konduktorit",
+    viewStats: "Shiko statistikat",
+    scanOrEnter: "Skanoni biletën ose shkruani token-in manualisht",
+    openCamera: "Hap kamerën",
+    closeCamera: "Mbyll kamerën",
+    pointCamera:
+      "Drejto kamerën kah kodi QR. Kur të shfaqet token më poshtë, kliko “Kontrollo”.",
+    checkTicket: "Kontrollo biletën",
+    ticketToken: "Token i biletës",
+    checkButton: "Kontrollo",
+    status: "Statusi",
+    route: "Linja",
+    seat: "Ulësja",
+    price: "Çmimi",
+    Markasused: "Shëno si e përdorur",
+
+    // Stats
+    routeStatsTitle: "Statistikat e linjave",
+    routeColumn: "Linja",
+    ticketsSoldColumn: "Bileta të shitura",
+    totalRevenueColumn: "Të ardhura totale (€)",
+    avgPriceColumn: "Çmimi mesatar (€)",
+
+    // Misc
+    routeStatistics: "Statistikat e linjave",
+    routeNotFound:
+      "Nuk u gjet asnjë linjë valide për këtë drejtim. Ju lutem zgjidhni kombinim tjetër Prej / Deri.",
+    basePriceLabelShort: "Çmimi bazë",
+    inboundTrips: "Udhëtimet në kthim",
+    ticketConfirmedOne: "1 biletë e konfirmuar",
+    ticketsConfirmedMany: "{{count}} bileta të konfirmuara",
   },
 };
+
 
 
 // Linjat tona me çmimet bazë (për një drejtim)
@@ -305,8 +297,17 @@ function App() {
   [adults, children]
 );
 
-  // rezultati i fundit i Search
-  const [searchResult, setSearchResult] = useState(null);
+  const [searchResult, setSearchResult] = useState({
+    // këto fusha mund të jenë bosh në fillim
+    selectedRouteId: null,
+    selectedTripId: null,
+    selectedDepartureTime: "",
+    selectedArrivalTime: "",
+    returnRouteId: null,
+    returnTripId: null,
+    selectedReturnDepartureTime: "",
+    selectedReturnArrivalTime: "",
+  });
   const [searchError, setSearchError] = useState(null);
 
 
@@ -541,8 +542,17 @@ const handleChildrenChange = (e) => {
       }
 
       const data = await response.json();
-      // data: { trip_id, count, tickets: [{ seat_no, price, token }, ...] }
-      setReservationResult(data);
+      setReservationResult({
+      ...data,
+      from: searchResult?.from,
+      to: searchResult?.to,
+      departureDate: searchResult?.departureDate,
+      returnDate: searchResult?.returnDate,
+      departureTime: searchResult?.selectedDepartureTime,
+      arrivalTime: searchResult?.selectedArrivalTime,
+      returnDepartureTime: searchResult?.selectedReturnDepartureTime,
+      returnArrivalTime: searchResult?.selectedReturnArrivalTime,
+    });
       setView("payment");
     } catch (err) {
       setReserveError("Nuk mund të lidhem me serverin.");
@@ -1017,9 +1027,6 @@ const handleChildrenChange = (e) => {
         </div>
 
 
-
-
-
         {/* Dates + Passengers */}
         <div className="row date-passenger-row">
           <div className="field">
@@ -1066,19 +1073,33 @@ const handleChildrenChange = (e) => {
         from,
         to,
         date: departureDate,
+        returnDate: isRoundTrip ? returnDate : null,
         passengers,
       }}
-      onSelectTrip={({ route, trip }) => {
-        // ruajmë udhëtimin e zgjedhur dhe kalojmë në faqen tjetër
-        setSearchResult((prev) => ({
-          ...prev,
-          selectedRouteId: route.id,
-          selectedTripId: trip.id,
-          selectedDepartureTime: trip.departure,
-          selectedArrivalTime: trip.arrival,
-        }));
-        setView("results");
-      }}
+      onSelectTrip={({ route, trip, direction }) => {
+  setSearchResult((prev) => {
+    const next = { ...prev };
+
+    if (direction === "outbound") {
+      next.selectedRouteId = route.id;
+      next.selectedTripId = trip.id;
+      next.selectedDepartureTime = trip.departure;
+      next.selectedArrivalTime = trip.arrival;
+    }
+
+    if (direction === "inbound") {
+      next.returnRouteId = route.id;
+      next.returnTripId = trip.id;
+      next.selectedReturnDepartureTime = trip.departure;
+      next.selectedReturnArrivalTime = trip.arrival;
+    }
+
+    return next;
+  });
+
+  setView("results");
+}}
+
       t={t}   
     />
   </>
@@ -1145,6 +1166,12 @@ const handleChildrenChange = (e) => {
               <li>
                 <strong>{t("Route:")}</strong> {searchResult.from} → {searchResult.to}
               </li>
+              {searchResult.trip_type === "roundTrip" && (
+  <p>
+    <strong>Return route:</strong> {searchResult.to} → {searchResult.from}
+  </p>
+)}
+
 
               <li>
                 <strong>{t("Triptype")}:</strong>{" "}
@@ -1164,15 +1191,45 @@ const handleChildrenChange = (e) => {
               )}
 
               <li>
-  <strong>Departure time:</strong>{" "}
+  <strong>{t("departureTimeLabel")}:</strong>{" "}
   {searchResult.selectedDepartureTime || "Not selected"}
 </li>
 <li>
-  <strong>Arrival time:</strong>{" "}
+  <strong>{t("arrivalTimeLabel")}:</strong>{" "}
   {searchResult.selectedArrivalTime || "Not selected"}
 </li>
 
+{searchResult?.selectedReturnDepartureTime && (
+  <>
+    {/* Titulli i seksionit të kthimit si <li>, me vijë sipër */}
+    <li
+      style={{
+        borderTop: "1px solid #e5e7eb",
+        marginTop: "8px",
+        paddingTop: "8px",
+        fontSize: "13px",
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+        color: "#6b7280",
+        fontWeight: 600,
+      }}
+    >
+      {t("returnTripHeading")}
+    </li>
 
+    <li>
+      <strong>{t("returnRouteLabel")}:</strong> {searchResult.to} → {searchResult.from}
+    </li>
+    <li>
+      <strong>{t("returnDepartureTimeLabel")}:</strong>{" "}
+      {searchResult.selectedReturnDepartureTime}
+    </li>
+    <li>
+      <strong>{t("returnArrivalTimeLabel")}:</strong>{" "}
+      {searchResult.selectedReturnArrivalTime}
+    </li>
+  </>
+)}
               <li>
                 <strong>{t("Passengers")}:</strong> {searchResult.passengers}
               </li>
@@ -1268,7 +1325,7 @@ const handleChildrenChange = (e) => {
       <input
         value={validateToken}
         onChange={(e) => setValidateToken(e.target.value)}
-        placeholder="Ticket token"
+        placeholder={t("ticketToken")}
       />
 
       <button onClick={handleValidateTicket}>{t("checkButton")}</button>
@@ -1337,50 +1394,71 @@ const handleChildrenChange = (e) => {
       </strong>
     </p>
 
-        <ul className="result-details">
+           <ul className="result-details">
+      <li>
+        <strong>{t("departureDate")}:</strong> {reservationResult.departureDate}
+      </li>
+
+      {reservationResult.returnDate && (
+        <li>
+          <strong>{t("returnDate")}:</strong> {reservationResult.returnDate}
+        </li>
+      )}
+
+      <li>
+        <strong>{t("departureTimeLabel")}:</strong> {reservationResult.departureTime}
+      </li>
+      <li>
+        <strong>{t("arrivalTimeLabel")}:</strong> {reservationResult.arrivalTime}
+      </li>
+
+      {reservationResult.returnDepartureTime && (
+        <>
           <li>
-    <strong>Departure date:</strong> {searchResult?.departureDate}
-  </li>
-  {searchResult?.trip_type === "round-trip" && searchResult?.returnDate && (
-    <li>
-      <strong>Return date:</strong> {searchResult.returnDate}
-    </li>
-  )}
-  <li>
-    <strong>Departure time:</strong>{" "}
-    {searchResult?.selectedDepartureTime}
-  </li>
-  <li>
-    <strong>Arrival time:</strong>{" "}
-    {searchResult?.selectedArrivalTime}
-  </li>
+            <strong>{t("returnDepartureTimeLabel")}:</strong>{" "}
+            {reservationResult.returnDepartureTime}
+          </li>
+          <li>
+            <strong>{t("returnArrivalTimeLabel")}:</strong>{" "}
+            {reservationResult.returnArrivalTime}
+          </li>
+        </>
+      )}
+
       {reservationResult.tickets.map((ticket, idx) => (
         <li key={idx} style={{ marginBottom: "20px" }}>
           {t("seatLabel")}: {ticket.seat_no} — {ticket.price} €
-          {ticket.passenger_type === "child" && (
-            <span> ({t("childDiscountLabel")})</span>
-          )}
-          <br />
-
-          {/* QR Code */}
-          <div style={{ marginTop: "10px" }}>
-            <QRCodeCanvas value={ticket.token} size={120} />
+          <div
+            style={{
+              marginTop: "8px",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <QRCodeCanvas
+              value={ticket.token}
+              size={128}
+              includeMargin={true}
+            />
           </div>
         </li>
       ))}
     </ul>
+
     {priceSummary && (
       <div style={{ marginTop: "16px" }}>
         <h3>{t("priceSummary")}</h3>
         <ul className="result-details">
           <li>{t("adults")}:{priceSummary.adultCount}</li>
-          <li>{t("children")}: (0–14): {priceSummary.childCount}</li>
+          <li>{t("children")}: {priceSummary.childCount}</li>
           <li>
             {t("totalPrice")}: {priceSummary.totalPrice.toFixed(2)} €
           </li>
           {priceSummary.savings > 0 && (
             <li>
-              {t("Yousaved")} {priceSummary.savings.toFixed(2)} € with 10% child discount.
+              {t("Yousaved")} {priceSummary.savings.toFixed(2)} € {lang === "sq"
+      ? "me zbritjen 10% për fëmijë."
+      : "with 10% child discount."}
             </li>
           )}
         </ul>

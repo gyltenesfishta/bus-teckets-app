@@ -52,13 +52,15 @@ function getStopSchedule(route, trip) {
 }
 
 export default function SearchResults({ searchParams, onSelectTrip, t }) {
-  const { from, to, date } = searchParams || {};
+  // tani marrim edhe returnDate
+  const { from, to, date, returnDate } = searchParams || {};
   const [expandedTripId, setExpandedTripId] = useState(null);
 
-  const route = routes.find((r) => r.from === from && r.to === to);
+  // OUTBOUND: from -> to
+  const outboundRoute = routes.find((r) => r.from === from && r.to === to);
 
-  // Nëse nuk ka linjë për këtë drejtim
-  if (!route) {
+  // nëse nuk ka linjë për këtë drejtim
+  if (!outboundRoute) {
     return (
       <div style={{ padding: "24px" }}>
         <h2>{t("noTripsFound")}</h2>
@@ -67,22 +69,29 @@ export default function SearchResults({ searchParams, onSelectTrip, t }) {
     );
   }
 
-  const stopsCount = route.stops.length;
+  const outboundStopsCount = outboundRoute.stops.length;
+
+  // INBOUND: to -> from (për kthim)
+  const inboundRoute =
+    from && to ? routes.find((r) => r.from === to && r.to === from) : null;
 
   return (
     <div style={{ padding: "24px" }}>
+      {/* OUTBOUND HEADER */}
       {date && (
-        <p style={{ color: "#555", fontSize: "14px" }}>
+        <p style={{ color: "#555", fontSize: "14px", marginBottom: "8px" }}>
           {t("outboundTrips")} • {date}
         </p>
       )}
 
-      {/* Lista e udhëtimeve */}
+      {/* LISTA E UDHËTIMEVE OUTBOUND */}
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-        {route.trips.map((trip, idx) => {
+        {outboundRoute.trips.map((trip, idx) => {
           const duration = getDuration(trip.departure, trip.arrival);
           const isExpanded = expandedTripId === trip.id;
-          const stopSchedule = isExpanded ? getStopSchedule(route, trip) : [];
+          const stopSchedule = isExpanded
+            ? getStopSchedule(outboundRoute, trip)
+            : [];
 
           return (
             <div
@@ -130,8 +139,8 @@ export default function SearchResults({ searchParams, onSelectTrip, t }) {
                     </span>
                   </div>
                   <div style={{ fontSize: "14px", color: "#4b5563" }}>
-                    {route.from} {t("busStation")} → {route.to}{" "}
-                    {t("busStation")}
+                    {outboundRoute.from} {t("busStation")} →{" "}
+                    {outboundRoute.to} {t("busStation")}
                   </div>
 
                   {/* "9 ndalesa • Autobus • Direkt" klikues */}
@@ -151,7 +160,8 @@ export default function SearchResults({ searchParams, onSelectTrip, t }) {
                       textDecoration: "underline",
                     }}
                   >
-                    {stopsCount} {t("stops")} • {t("bus")} • {t("direct")}
+                    {outboundStopsCount} {t("stops")} • {t("bus")} •{" "}
+                    {t("direct")}
                     {isExpanded ? " ▲" : " ▼"}
                   </button>
                 </div>
@@ -172,12 +182,17 @@ export default function SearchResults({ searchParams, onSelectTrip, t }) {
                       fontWeight: 700,
                     }}
                   >
-                    {route.basePrice.toFixed(2)} €
+                    {outboundRoute.basePrice.toFixed(2)} €
                   </div>
 
                   <button
                     onClick={() =>
-                      onSelectTrip && onSelectTrip({ route, trip })
+                      onSelectTrip &&
+                      onSelectTrip({
+                        route: outboundRoute,
+                        trip,
+                        direction: "outbound",
+                      })
                     }
                     style={{
                       border: "none",
@@ -224,7 +239,185 @@ export default function SearchResults({ searchParams, onSelectTrip, t }) {
           );
         })}
       </div>
+
+      {/* ======================== */}
+      {/* LISTA E UDHËTIMEVE INBOUND */}
+      {/* ======================== */}
+      {returnDate && inboundRoute && (
+        <div style={{ marginTop: "40px" }}>
+          <p
+            style={{
+              color: "#555",
+              fontSize: "14px",
+              marginBottom: "8px",
+            }}
+          >
+            {t("inboundTrips")} • {returnDate}
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+            }}
+          >
+            {inboundRoute.trips.map((trip, idx) => {
+              const duration = getDuration(trip.departure, trip.arrival);
+              const isExpanded = expandedTripId === trip.id;
+              const stopSchedule = isExpanded
+                ? getStopSchedule(inboundRoute, trip)
+                : [];
+              const inboundStopsCount = inboundRoute.stops.length;
+
+              return (
+                <div
+                  key={`${trip.id}-${idx}`}
+                  style={{
+                    borderRadius: "12px",
+                    border: "1px solid #e5e7eb",
+                    padding: "16px 20px",
+                    background: "#fff",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.04)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "16px",
+                    }}
+                  >
+                    {/* Info majtas */}
+                    <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          gap: "12px",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        <span style={{ fontSize: "20px", fontWeight: 600 }}>
+                          {trip.departure}
+                        </span>
+                        <span
+                          style={{
+                            color: "#9ca3af",
+                            fontSize: "12px",
+                          }}
+                        >
+                          {duration}
+                        </span>
+                        <span style={{ fontSize: "16px", fontWeight: 500 }}>
+                          {trip.arrival}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "14px", color: "#4b5563" }}>
+                        {inboundRoute.from} {t("busStation")} →{" "}
+                        {inboundRoute.to} {t("busStation")}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedTripId(isExpanded ? null : trip.id)
+                        }
+                        style={{
+                          marginTop: "6px",
+                          padding: 0,
+                          border: "none",
+                          background: "none",
+                          fontSize: "12px",
+                          color: "#16a34a",
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        {inboundStopsCount} {t("stops")} • {t("bus")} •{" "}
+                        {t("direct")}
+                        {isExpanded ? " ▲" : " ▼"}
+                      </button>
+                    </div>
+
+                    {/* Cmimi + butoni Select për INBOUND */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
+                        gap: "6px",
+                        minWidth: "90px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "18px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {inboundRoute.basePrice.toFixed(2)} €
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          onSelectTrip &&
+                          onSelectTrip({
+                            route: inboundRoute,
+                            trip,
+                            direction: "inbound",
+                          })
+                        }
+                        style={{
+                          border: "none",
+                          borderRadius: "9999px",
+                          padding: "10px 22px",
+                          background: "#16a34a",
+                          color: "#fff",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {t("select")}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Lista e ndalesave – inbound */}
+                  {isExpanded && (
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        paddingTop: "10px",
+                        borderTop: "1px solid #e5e7eb",
+                        fontSize: "13px",
+                        color: "#4b5563",
+                      }}
+                    >
+                      {stopSchedule.map((stop) => (
+                        <div
+                          key={stop.index}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            padding: "2px 0",
+                          }}
+                        >
+                          <span>{stop.time}</span>
+                          <span>{stop.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 

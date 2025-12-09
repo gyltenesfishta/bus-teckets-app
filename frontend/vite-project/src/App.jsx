@@ -378,38 +378,45 @@ function App() {
 
 
   // Përmbledhja e çmimit në bazë të biletave të rezervuara (adult/child + zbritja 10%)
-  const priceSummary = useMemo(() => {
-    if (!reservationResult || !reservationResult.tickets) return null;
+ const priceSummary = useMemo(() => {
+  if (!reservationResult || !reservationResult.tickets) return null;
 
-    const tickets = reservationResult.tickets;
-    let adultCount = 0;
-    let childCount = 0;
-    let totalPrice = 0;
-    let fullPriceIfNoDiscount = 0;
+  const tickets = reservationResult.tickets;
+  let adultCount = 0;
+  let childCount = 0;
+  let baseTotalPrice = 0;
+  let baseFullPriceIfNoDiscount = 0;
 
-    for (const t of tickets) {
-      const price = Number(t.price) || 0;
-      totalPrice += price;
+  for (const t of tickets) {
+    const price = Number(t.price) || 0;
+    baseTotalPrice += price;
 
-      if (t.passenger_type === "child") {
-        childCount += 1;
-        // rikthe çmimin para zbritjes 10% (përafërsisht)
-        fullPriceIfNoDiscount += price / 0.9;
-      } else {
-        adultCount += 1;
-        fullPriceIfNoDiscount += price;
-      }
+    if (t.passenger_type === "child") {
+      childCount += 1;
+      // çmimi i plotë para zbritjes 10% (përafërsisht)
+      baseFullPriceIfNoDiscount += price / 0.9;
+    } else {
+      adultCount += 1;
+      baseFullPriceIfNoDiscount += price;
     }
+  }
 
-    const savings = fullPriceIfNoDiscount - totalPrice;
+  // Nëse është vajtje–kthim, paguajmë për 2 udhëtime
+  const legs =
+    tripType === "round-trip" && searchResult?.returnTripId ? 2 : 1;
 
-    return {
-      adultCount,
-      childCount,
-      totalPrice,
-      savings: savings > 0 ? savings : 0,
-    };
-  }, [reservationResult]);
+  const totalPrice = baseTotalPrice * legs;
+  const fullPriceIfNoDiscount = baseFullPriceIfNoDiscount * legs;
+  const savings = fullPriceIfNoDiscount - totalPrice;
+
+  return {
+    adultCount,
+    childCount,
+    totalPrice,
+    savings: savings > 0 ? savings : 0,
+  };
+}, [reservationResult, tripType, searchResult]);
+
 
 
   const isRoundTrip = tripType === "round-trip";
@@ -771,8 +778,6 @@ const handleChildrenChange = (e) => {
     setIsPaying(false);
   }
 };
-
-
 
 
   return (
@@ -1271,11 +1276,7 @@ const handleChildrenChange = (e) => {
                 <strong>{t("departureDate")}:</strong> {searchResult.departureDate}
               </li>
 
-              {searchResult.trip_type === "round-trip" && searchResult.returnDate && (
-                <li>
-                  <strong>{t("returnDate")}:</strong> {searchResult.returnDate}
-                </li>
-              )}
+              
 
               <li>
   <strong>{t("departureTimeLabel")}:</strong>{" "}
@@ -1304,9 +1305,18 @@ const handleChildrenChange = (e) => {
       {t("returnTripHeading")}
     </li>
 
+  
+
+
     <li>
       <strong>{t("returnRouteLabel")}:</strong> {searchResult.to} → {searchResult.from}
     </li>
+
+    <li>
+      <strong>{t("returnDate")}:</strong> {searchResult.returnDate}
+    </li>
+
+
     <li>
       <strong>{t("returnDepartureTimeLabel")}:</strong>{" "}
       {searchResult.selectedReturnDepartureTime}

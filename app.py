@@ -10,6 +10,12 @@ import smtplib
 import qrcode
 from io import BytesIO
 from datetime import datetime, timedelta
+import stripe
+from flask import Flask, request, jsonify
+
+stripe.api_key = "sk_test_51Sa08OLEYnCumwJRFHnSnI63SaAfohFjJI9wkPXYlIRdexcahCdeonHDJ6Vx0PqNL9kyKCfjHuSHfnt4AtY4LBfD004VxdqPy9"
+
+STRIPE_WEBHOOK_SECRET = "whsec_d6348e43b184b3074ba89b7ba5b9ad541c5c61ccc9d5838136761963722df5b5"
 
 
 
@@ -417,6 +423,110 @@ def stats_routes():
 
     return jsonify({"routes": stats})
 
+@app.route("/api/payments/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    data = request.get_json() or {}
+    tokens = data.get("tokens", [])
+    amount = data.get("amount")  # në cent (p.sh. 400 = 4.00 €)
+    email = data.get("email")
+
+    if not tokens or not amount:
+        return {"error": "Missing tokens or amount"}, 400
+
+    try:
+        session = stripe.checkout.Session.create(
+            mode="payment",
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "eur",
+                        "product_data": {
+                            "name": f"Bus tickets ({len(tokens)} passenger(s))",
+                        },
+                        "unit_amount": int(amount),  # në cent
+                    },
+                    "quantity": 1,
+                }
+            ],
+            success_url="http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url="http://localhost:5173/payment-cancelled",
+            customer_email=email,
+            metadata={
+                "ticket_tokens": ",".join(tokens),
+            },
+        )
+
+        return {"url": session.url}
+    except Exception as e:
+        print("Stripe error:", e)
+        return {"error": "Failed to create checkout session"}, 500
+
+
+@app.route("/api/stripe/webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get("Stripe-Signature", "")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        print("❌ Invalid payload")
+        return "", 400
+    except stripe.error.SignatureVerificationError:
+        print("❌ Invalid signature")
+        return "", 400
+
+    print("✅ Webhook event received:", event["type"])
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+
+        # lexojmë token-at e biletave nga metadata (nga create_checkout_session)
+        metadata = session.get("metadata", {}) or {}
+        tokens_str = metadata.get("ticket_tokens", "")
+        tokens = [t for t in tokens_str.split(",") if t]
+
+        print("💳 Payment completed for tokens:", tokens)
+
+        if tokens:
+            # Pjesa POSHTË është e njëjtë me api_confirm_tickets, por pa kthyer JSON
+            with get_connection() as conn:
+                placeholders = ",".join(["?"] * len(tokens))
+
+                rows = conn.execute(
+                    f"""
+                    SELECT id, token, status
+                    FROM tickets
+                    WHERE token IN ({placeholders})
+                    """,
+                    tokens,
+                ).fetchall()
+
+                if not rows:
+                    print("⚠️ No tickets found for provided tokens in webhook.")
+                else:
+                    already_paid = [r["token"] for r in rows if r["status"] == "paid"]
+                    to_pay_ids = [r["id"] for r in rows if r["status"] == "reserved"]
+
+                    if to_pay_ids:
+                        placeholders_ids = ",".join(["?"] * len(to_pay_ids))
+                        conn.execute(
+                            f"UPDATE tickets SET status = 'paid' WHERE id IN ({placeholders_ids})",
+                            to_pay_ids,
+                        )
+                        conn.commit()
+
+                    print(
+                        f"✅ Tickets updated via webhook. "
+                        f"paid_count={len(to_pay_ids)}, already_paid={already_paid}, tokens={tokens}"
+                    )
+        else:
+            print("⚠️ No ticket_tokens found in session metadata.")
+
+    # Stripe pret vetëm një status 2xx, s’ka nevojë për JSON
+    return "", 200
 
 
 if __name__ == "__main__":

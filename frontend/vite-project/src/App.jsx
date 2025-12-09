@@ -1,8 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import "./App.css";
 import SearchResults from "./SearchResults";
 import { QRCodeCanvas } from "qrcode.react";
 import { QrReader } from "react-qr-reader";
+
+
+
 
 const translations = {
   en: {
@@ -341,6 +344,38 @@ function App() {
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
 
+  useEffect(() => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+
+    // Nëse nuk ka session_id, s’jemi kthyer nga Stripe → mos bëj asgjë
+    if (!sessionId) return;
+
+    const saved = localStorage.getItem("bt-last-reservation");
+    if (!saved) {
+      console.warn("No saved reservation in localStorage");
+      return;
+    }
+
+    const parsed = JSON.parse(saved);
+
+    if (parsed.reservationResult) {
+      setReservationResult(parsed.reservationResult);
+    }
+    if (parsed.searchResult) {
+      setSearchResult(parsed.searchResult);
+    }
+
+    // Shfaq prapë kartën "Ticket reservation / Confirm payment"
+    setView("payment");
+  } catch (err) {
+    console.error("Failed to restore reservation after Stripe", err);
+  }
+}, []);
+
+
+
 
   // Përmbledhja e çmimit në bazë të biletave të rezervuara (adult/child + zbritja 10%)
   const priceSummary = useMemo(() => {
@@ -508,58 +543,90 @@ const handleChildrenChange = (e) => {
     setView("trips");
   };
 
-  // Kur shtypet "Rezervo biletat" – thërrasim /api/tickets
-  const handleReserve = async () => {
-    if (!searchResult || searchResult.error) return;
+    const handleReserve = async () => {
+  if (!searchResult || searchResult.error) return;
 
-    const tripId = getRouteId(from, to);
-    if (!tripId) {
-      setReserveError("Nuk u gjet asnjë linjë për këtë drejtim.");
-      setReservationResult(null);
+  const tripId = getRouteId(from, to);
+  if (!tripId) {
+    setReserveError("Nuk u gjet asnjë linjë për këtë drejtim.");
+    setReservationResult(null);
+    return;
+  }
+
+  // përdor direkt state-in adults / children
+  const adultCount = adults;
+  const childCount = children;
+
+  try {
+    setIsReserving(true);
+    setReserveError(null);
+    setReservationResult(null);
+
+    const response = await fetch("http://127.0.0.1:5000/api/tickets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        trip_id: tripId,
+
+        // këto i pret backend-i:
+        adults: adultCount,
+        children: childCount,
+        email,
+
+        // opsionale – vetëm si meta-informata për ty
+        date: departureDate,
+        return_date: tripType === "round-trip" ? returnDate : null,
+        selected_departure_time: searchResult?.selectedDepartureTime,
+        selected_arrival_time: searchResult?.selectedArrivalTime,
+        selected_return_departure_time:
+          searchResult?.selectedReturnDepartureTime,
+        selected_return_arrival_time:
+          searchResult?.selectedReturnArrivalTime,
+      }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      setReserveError(errData.error || "Gabim gjatë rezervimit.");
       return;
     }
 
-    try {
-      setIsReserving(true);
-      setReserveError(null);
-      setReservationResult(null);
+    const data = await response.json();
 
-      const response = await fetch("http://127.0.0.1:5000/api/tickets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          trip_id: tripId,
-          adults,      
-          children, 
-          email: email, 
-        }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        setReserveError(errData.error || "Gabim gjatë rezervimit.");
-        return;
-      }
-
-      const data = await response.json();
-      setReservationResult({
+    const reservationWithMeta = {
       ...data,
       from: searchResult?.from,
       to: searchResult?.to,
-      departureDate: searchResult?.departureDate,
-      returnDate: searchResult?.returnDate,
+      departureDate,
+      returnDate,
       departureTime: searchResult?.selectedDepartureTime,
       arrivalTime: searchResult?.selectedArrivalTime,
       returnDepartureTime: searchResult?.selectedReturnDepartureTime,
       returnArrivalTime: searchResult?.selectedReturnArrivalTime,
-    });
-      setView("payment");
-    } catch (err) {
-      setReserveError("Nuk mund të lidhem me serverin.");
-    } finally {
-      setIsReserving(false);
+    };
+
+    setReservationResult(reservationWithMeta);
+
+    const snapshot = {
+      reservationResult: reservationWithMeta,
+      searchResult,
+    };
+
+    try {
+      localStorage.setItem("bt-last-reservation", JSON.stringify(snapshot));
+    } catch (e) {
+      console.error("Failed to save reservation to localStorage", e);
     }
-  };
+
+    setView("payment");
+  } catch (err) {
+    console.error(err);
+    setReserveError("Nuk mund të lidhem me serverin.");
+  } finally {
+    setIsReserving(false);
+  }
+};
+
 
   const handleValidateTicket = async (e) => {
     e.preventDefault?.();
@@ -647,42 +714,66 @@ const handleChildrenChange = (e) => {
 
 
 
-  const handleConfirmPayment = async () => {
-    if (!reservationResult || !reservationResult.tickets) return;
+ const handleConfirmPayment = async () => {
+  if (!reservationResult || !reservationResult.tickets || !priceSummary) return;
 
-    const tokens = reservationResult.tickets.map((t) => t.token);
+  const tokens = reservationResult.tickets.map((t) => t.token);
+  const amountInCents = Math.round(priceSummary.totalPrice * 100);
 
-    try {
-      setIsPaying(true);
-      setPaymentError(null);
-      setPaymentStatus(null);
+  try {
+    setIsPaying(true);
+    setPaymentError(null);
+    setPaymentStatus(null);
 
-      const response = await fetch("http://127.0.0.1:5000/api/tickets/confirm", {
+    const response = await fetch(
+      "http://127.0.0.1:5000/api/payments/create-checkout-session",
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tokens }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        setPaymentError(errData.error || "Gabim gjatë konfirmimit të pagesës.");
-        return;
+        body: JSON.stringify({
+          tokens,
+          amount: amountInCents,
+          email,
+        }),
       }
+    );
 
-      const data = await response.json();
-      setPaymentStatus(
-        ` ${data.paid_count} tickets confirmed. ${
-          data.already_paid && data.already_paid.length
-            ? "Disa bileta kanë qenë tashmë të paguara."
-            : ""
-        }`
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      setPaymentError(
+        errData.error || "Nuk u krijua dot sesioni i pagesës."
       );
-    } catch (err) {
-      setPaymentError("Nuk mund të lidhem me serverin për pagesë.");
-    } finally {
-      setIsPaying(false);
+      return;
     }
-  };
+
+    const data = await response.json();
+
+    if (data.url) {
+      // 🔹 RUJE GJENDJEN PARA REDIRECT
+      localStorage.setItem(
+        "bt-last-reservation",
+        JSON.stringify({
+          reservationResult,
+          priceSummary,
+          searchResult,
+        })
+      );
+
+      // 🔹 REDIRECT TE STRIPE
+      window.location.href = data.url;
+    } else {
+      setPaymentError("Mungon URL nga Stripe.");
+    }
+  } catch (err) {
+    console.error(err);
+    setPaymentError("Gabim gjatë nisjes së pagesës.");
+  } finally {
+    setIsPaying(false);
+  }
+};
+
+
+
 
   return (
     <div className="app-root">
@@ -1166,11 +1257,7 @@ const handleChildrenChange = (e) => {
               <li>
                 <strong>{t("Route:")}</strong> {searchResult.from} → {searchResult.to}
               </li>
-              {searchResult.trip_type === "roundTrip" && (
-  <p>
-    <strong>Return route:</strong> {searchResult.to} → {searchResult.from}
-  </p>
-)}
+              
 
 
               <li>

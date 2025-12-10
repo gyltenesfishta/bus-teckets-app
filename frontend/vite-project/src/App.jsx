@@ -344,6 +344,8 @@ function App() {
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
 
+
+
   useEffect(() => {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -1163,44 +1165,81 @@ const handleChildrenChange = (e) => {
       </form>
     </div>
 
-    {/* Lista e orareve poshtë formës */}
-    <SearchResults
+
+<SearchResults
       searchParams={{
         from,
         to,
         date: departureDate,
-        returnDate: isRoundTrip ? returnDate : null,
-        passengers,
+        returnDate: tripType === "round-trip" ? returnDate : null,
       }}
       onSelectTrip={({ route, trip, direction }) => {
-  setSearchResult((prev) => {
-    const next = { ...prev };
+        if (!route || !trip) return;
 
-    if (direction === "outbound") {
-      next.selectedRouteId = route.id;
-      next.selectedTripId = trip.id;
-      next.selectedDepartureTime = trip.departure;
-      next.selectedArrivalTime = trip.arrival;
-    }
+        const isRoundTrip = tripType === "round-trip";
+        const legPrice =
+          (route.basePrice ?? getRoutePrice(route.from, route.to) ?? 0);
 
-    if (direction === "inbound") {
-      next.returnRouteId = route.id;
-      next.returnTripId = trip.id;
-      next.selectedReturnDepartureTime = trip.departure;
-      next.selectedReturnArrivalTime = trip.arrival;
-    }
+        setSearchResult((prev) => ({
+          ...prev,
+          from,
+          to,
+          trip_type: tripType,
+          departureDate,
+          returnDate: isRoundTrip ? returnDate : null,
+          passengers,
+          price_per_leg: legPrice,
+          total_price: legPrice * passengers * (isRoundTrip ? 2 : 1),
 
-    return next;
-  });
+          // OUTBOUND
+          selectedRouteId:
+            direction === "outbound"
+              ? getRouteId(route.from, route.to)
+              : prev.selectedRouteId,
+          selectedTripId:
+            direction === "outbound" ? trip.id : prev.selectedTripId,
+          selectedDepartureTime:
+            direction === "outbound"
+              ? trip.departure
+              : prev.selectedDepartureTime,
+          selectedArrivalTime:
+            direction === "outbound"
+              ? trip.arrival
+              : prev.selectedArrivalTime,
 
-  setView("results");
-}}
+          // INBOUND
+          returnRouteId:
+            direction === "inbound"
+              ? getRouteId(route.from, route.to)
+              : prev.returnRouteId,
+          returnTripId:
+            direction === "inbound" ? trip.id : prev.returnTripId,
+          selectedReturnDepartureTime:
+            direction === "inbound"
+              ? trip.departure
+              : prev.selectedReturnDepartureTime,
+          selectedReturnArrivalTime:
+            direction === "inbound"
+              ? trip.arrival
+              : prev.selectedReturnArrivalTime,
+        }));
 
-      t={t}   
+        
+        if (isRoundTrip) {
+          if (direction === "outbound") {
+            // pasi zgjedh vajtjen, qëndro në "trips" që të zgjedhësh edhe kthimin
+            return;
+          } else {
+            setView("results");
+          }
+        } else {
+          setView("results");
+        }
+      }}
+      t={t}
     />
   </>
 )}
-
 
 {view === "stats" && (
   <section className="result-card" style={{ marginTop: "20px" }}>

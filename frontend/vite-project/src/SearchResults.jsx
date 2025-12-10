@@ -51,7 +51,13 @@ function getStopSchedule(route, trip) {
   });
 }
 
-export default function SearchResults({ searchParams, onSelectTrip, t }) {
+export default function SearchResults({
+  searchParams,
+  onSelectTrip,
+  t,
+  selectedOutboundTripId,
+  selectedInboundTripId,
+}) {
   // tani marrim edhe returnDate
   const { from, to, date, returnDate } = searchParams || {};
   const [expandedTripId, setExpandedTripId] = useState(null);
@@ -75,6 +81,9 @@ export default function SearchResults({ searchParams, onSelectTrip, t }) {
   const inboundRoute =
     from && to ? routes.find((r) => r.from === to && r.to === from) : null;
 
+    const isSelectedOutbound =
+    selectedOutboundTripId != null && selectedOutboundTripId === trip.id;
+
   return (
     <div style={{ padding: "24px" }}>
       {/* OUTBOUND HEADER */}
@@ -95,15 +104,16 @@ export default function SearchResults({ searchParams, onSelectTrip, t }) {
 
           return (
             <div
-              key={`${trip.id}-${idx}`}
-              style={{
-                borderRadius: "12px",
-                border: "1px solid #e5e7eb",
-                padding: "16px 20px",
-                background: "#fff",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.04)",
-              }}
-            >
+  key={`${trip.id}-${idx}`}
+  style={{
+    borderRadius: "12px",
+    border: isSelectedOutbound ? "2px solid #16a34a" : "1px solid #e5e7eb",
+    padding: "16px 20px",
+    background: isSelectedOutbound ? "#ecfdf3" : "#fff",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.04)",
+  }}
+>
+
               {/* rreshti kryesor: ora, info, cmimi + butoni */}
               <div
                 style={{
@@ -186,26 +196,28 @@ export default function SearchResults({ searchParams, onSelectTrip, t }) {
                   </div>
 
                   <button
-                    onClick={() =>
-                      onSelectTrip &&
-                      onSelectTrip({
-                        route: outboundRoute,
-                        trip,
-                        direction: "outbound",
-                      })
-                    }
-                    style={{
-                      border: "none",
-                      borderRadius: "9999px",
-                      padding: "10px 22px",
-                      background: "#16a34a",
-                      color: "#fff",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {t("select")}
-                  </button>
+  onClick={() =>
+    onSelectTrip &&
+    onSelectTrip({
+      route: outboundRoute,
+      trip,
+      direction: "outbound",
+    })
+  }
+  disabled={isSelectedOutbound}
+  style={{
+    border: "none",
+    borderRadius: "9999px",
+    padding: "10px 22px",
+    background: isSelectedOutbound ? "#16a34a80" : "#16a34a",
+    color: "#fff",
+    fontWeight: 600,
+    cursor: isSelectedOutbound ? "default" : "pointer",
+  }}
+>
+  {isSelectedOutbound ? t("selected") : t("select")}
+</button>
+
                 </div>
               </div>
 

@@ -29,7 +29,7 @@ const translations = {
     // Email + passengers popup
     emailLabel: "Email",
     emailPlaceholder: "you@example.com",
-    adults: "Adults",
+    adults: "Adult",
     adultsLabel: "Adults",
     adultsAgeHint: "15+ years",
     children: "Children (0–14)",
@@ -52,7 +52,7 @@ const translations = {
 
     // Result card (page 2)
     Searchresult: "Searchresult",
-    "Route:": "Route:",
+    Route: "Route:",
     Triptype: "Trip Type",
     departureDate: "Departure date",
     returnDate: "Return date",
@@ -113,12 +113,29 @@ const translations = {
     ticketsSoldColumn: "Tickets sold",
     totalRevenueColumn: "Total revenue (€)",
     avgPriceColumn: "Avg price (€)",
+    monthlyRevenueTitle: "Monthly revenue",
+    monthlyRevenueSubtitle: "Each bar shows total revenue per month.",
 
     // Misc
     routeStatistics: "Route statistics",
     routeNotFound:
       "No valid route was found for this direction. Please choose another From / To combination.",
     basePriceLabelShort: "Base price",
+
+    // Help
+helpTitle: "How to use this app",
+helpSubtitle: "Quick guide for booking tickets",
+helpBookTitle: "Book a ticket",
+helpBookText: "Select route, dates, passengers and email. Then click Search.",
+helpPayTitle: "Pay online",
+helpPayText: "You will be redirected to Stripe for secure card payment.",
+helpReceiveTitle: "Receive your ticket",
+helpReceiveText: "Your ticket will be sent by email automatically.",
+helpBusTitle: "On the bus",
+helpBusText: "Show your QR token to the conductor for check-in.",
+helpClose: "Close",
+helpButton: "Help",
+
   },
 
   sq: {
@@ -226,6 +243,8 @@ const translations = {
     ticketsSoldColumn: "Bileta të shitura",
     totalRevenueColumn: "Të ardhura totale (€)",
     avgPriceColumn: "Çmimi mesatar (€)",
+    monthlyRevenueTitle: "Të ardhurat mujore",
+    monthlyRevenueSubtitle: "Çdo shufër paraqet të ardhurat totale për muaj.",
 
     // Misc
     routeStatistics: "Statistikat e linjave",
@@ -235,6 +254,21 @@ const translations = {
     inboundTrips: "Udhëtimet në kthim",
     ticketConfirmedOne: "1 biletë e konfirmuar",
     ticketsConfirmedMany: "{{count}} bileta të konfirmuara",
+
+
+    //Help
+    helpTitle: "Si të përdorni këtë aplikacion",
+helpSubtitle: "Udhëzues i shkurtër për rezervimin e biletave",
+helpBookTitle: "Rezervo biletën",
+helpBookText: "Zgjidh linjën, datat, pasagjerët dhe email-in. Pastaj kliko Kërko.",
+helpPayTitle: "Paguaj online",
+helpPayText: "Do të ridrejtoheni në faqen e sigurt të Stripe për pagesën me kartelë.",
+helpReceiveTitle: "Merr biletën",
+helpReceiveText: "Bileta do të dërgohet automatikisht në email-in tuaj.",
+helpBusTitle: "Në autobus",
+helpBusText: "Shfaq token-in / QR kodin konduktorit për check-in.",
+helpClose: "Mbyll",
+helpButton: "Ndihmë",
   },
 };
 
@@ -348,6 +382,9 @@ function App() {
 
   const [monthlyRevenue, setMonthlyRevenue] = useState([]);
   const [isLoadingMonthly, setIsLoadingMonthly] = useState(false);
+
+  const [showHelp, setShowHelp] = useState(false);
+
 
 
 
@@ -865,6 +902,12 @@ const handleChildrenChange = (e) => {
 {/* Language toggle */}
     <div className="lang-toggle">
       <button
+  className="help-btn"
+  onClick={() => setShowHelp(true)}
+>
+  {t("helpButton")}
+</button>
+      <button
         type="button"
         className={lang === "en" ? "lang-btn active" : "lang-btn"}
         onClick={() => setLang("en")}
@@ -880,11 +923,17 @@ const handleChildrenChange = (e) => {
       </button>
     </div>
 
+    
+
+
     <header className="hero">
       <h1>{t("heroTitle")}</h1>
       <p>{t("heroSubtitle")}</p>
       
     </header>
+
+   
+
 
       
       
@@ -892,8 +941,8 @@ const handleChildrenChange = (e) => {
       <main className="search-section">
         {/* --------------- FAQJA 1: KËRKIMI --------------- */}
         {view === "search" && (
-          
           <div className="search-card">
+
 
             {/* Tipi i udhëtimit */}
             <div className="trip-type-row">
@@ -1014,7 +1063,7 @@ const handleChildrenChange = (e) => {
       {/* Adults */}
       <div className="passengers-row">
         <div className="passengers-row-text">
-          <div className="title">{t("adults")}:</div>
+          <div className="title">{t("adultsLabel")}:</div>
           <div className="subtitle">{t("adultsAgeHint")}</div>
         </div>
         <div className="passengers-counter">
@@ -1100,6 +1149,8 @@ const handleChildrenChange = (e) => {
             </div>
           </div>
         )}
+
+        
 
 
 {/* --------------- FAQJA 2: LISTA E ORAREVE --------------- */}
@@ -1350,7 +1401,7 @@ const handleChildrenChange = (e) => {
       <p>No sold tickets yet.</p>
     )}
         <div className="monthly-section">
-      <h3>Monthly revenue</h3>
+      <h3>{t("monthlyRevenueTitle")}</h3>
       <p
         style={{
           fontSize: "12px",
@@ -1358,7 +1409,7 @@ const handleChildrenChange = (e) => {
           marginBottom: "8px",
         }}
       >
-        Each bar shows total revenue per month.
+        {t("monthlyRevenueSubtitle")}
       </p>
 
       {isLoadingMonthly && <p>Loading monthly revenue...</p>}
@@ -1744,6 +1795,46 @@ const handleChildrenChange = (e) => {
           </section>
         )}
       </main>
+
+      {showHelp && (
+  <div className="help-modal-overlay" onClick={() => setShowHelp(false)}>
+    <div className="help-modal" onClick={(e) => e.stopPropagation()}>
+      <h2>{t("helpTitle")}</h2>
+      <p className="help-subtitle">{t("helpSubtitle")}</p>
+
+      <div className="help-modal-grid">
+        <div className="help-modal-card">
+          <div className="icon">🚌</div>
+          <h3>{t("helpTitle")}: </h3>
+          <p>{t("helpBookText")}:</p>
+        </div>
+
+        <div className="help-modal-card">
+          <div className="icon">💳</div>
+          <h3>{t("helpPayTitle")}:</h3>
+          <p>{t("helpPayText")}:</p>
+        </div>
+
+        <div className="help-modal-card">
+          <div className="icon">🎟️</div>
+          <h3>{t("helpReceiveTitle")}:</h3>
+          <p>{t("helpReceiveText")}</p>
+        </div>
+
+        <div className="help-modal-card">
+          <div className="icon">📲</div>
+          <h3>{t("helpBusTitle")}:</h3>
+          <p>{t("helpBusText")}</p>
+        </div>
+      </div>
+
+      <button className="close-help" onClick={() => setShowHelp(false)}>
+        {t("helpClose")}
+      </button>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
@@ -1806,6 +1897,8 @@ function MonthlyRevenueChart({ data }) {
         );
       })}
     </div>
+
+    
   );
 }
 

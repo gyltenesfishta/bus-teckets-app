@@ -814,3 +814,97 @@ body {
   font-size: 10px;
   color: #6b7280;
 }
+
+
+.help-btn {
+  margin-left: 8px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.help-btn:hover {
+  background: #f3f4f6;
+}
+
+.help-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.help-modal {
+  background: #fff;
+  width: 520px;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+  animation: fadeIn 0.25s ease;
+}
+
+.help-modal h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.help-subtitle {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.help-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.help-modal-card {
+  border: 1px solid #e5e7eb;
+  padding: 14px;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.help-modal-card .icon {
+  font-size: 24px;
+}
+
+.help-modal-card h3 {
+  margin: 6px 0 4px;
+  font-size: 16px;
+}
+
+.help-modal-card p {
+  margin: 0;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.close-help {
+  margin-top: 20px;
+  width: 100%;
+  background: #10b981;
+  color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.close-help:hover {
+  background: #059669;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}

@@ -38,13 +38,20 @@ SECRET_KEY = b"super-secret-key-change-this"
 def api_tickets():
     data = request.json or {}
 
+    # nga frontend vjen:
+    # trip_id              -> route_id
+    # date                 -> "2025-11-10"
+    # selected_departure_time -> "07:00"
     route_id = data.get("trip_id")
     adults = data.get("adults", 0)
     children = data.get("children", 0)
     email = data.get("email")
 
-    if not email:
-        return jsonify({"error": "email is required"}), 400
+    return_date = data.get("return_date")
+    is_round_trip = bool(return_date)
+
+    requested_date = data.get("date")  # p.sh. "2025-11-10"
+    requested_time = data.get("selected_departure_time")  # p.sh. "07:00"
 
     if not route_id:
         return jsonify({"error": "trip_id is required"}), 400
@@ -64,28 +71,114 @@ def api_tickets():
         return jsonify({"error": "At least 1 passenger is required"}), 400
 
     with get_connection() as conn:
-        # zgjedhim njërin trip për këtë route_id
-        trip_row = conn.execute(
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        # -------------------------------------------------
+        # 1) Provo të gjesh trip-in sipas DATËS (+ orës)
+        # -------------------------------------------------
+        trip_row = None
+
+        if requested_date:
+            if requested_time:
+                # filtro edhe sipas orës
+                trip_row = cur.execute(
+                    """
+                    SELECT id AS trip_id, total_seats, base_price
+                    FROM trips
+                    WHERE route_id = ?
+                      AND DATE(departure_at) = ?
+                      AND strftime('%H:%M', departure_at) = ?
+                    ORDER BY departure_at
+                    LIMIT 1
+                    """,
+                    (route_id, requested_date, requested_time),
+                ).fetchone()
+            else:
+                # vetëm sipas datës
+                trip_row = cur.execute(
+                    """
+                    SELECT id AS trip_id, total_seats, base_price
+                    FROM trips
+                    WHERE route_id = ?
+                      AND DATE(departure_at) = ?
+                    ORDER BY departure_at
+                    LIMIT 1
+                    """,
+                    (route_id, requested_date),
+                ).fetchone()
+
+        # -------------------------------------------------
+        # 2) Nëse nuk gjendet (për çdo rast) – fallback te e vjetra
+        # -------------------------------------------------
+            if trip_row is None:
+            # marrim një trip ekzistues si "model"
+                template = cur.execute(
+                """
+                SELECT total_seats, base_price, departure_at
+                FROM trips
+                WHERE route_id = ?
+                ORDER BY departure_at
+                LIMIT 1
+                """,
+                (route_id,),
+            ).fetchone()
+
+            if template is None:
+                return jsonify({"error": "No template trip for this route"}), 404
+
+            # nëse nuk kemi fare requested_date, atëherë përdorim datën e tripit ekzistues
+            if not requested_date:
+                # thjesht e përdorim departure_at e template-it
+                departure_dt = datetime.fromisoformat(template["departure_at"])
+            else:
+                # gjej orën: nga frontend nëse është, përndryshe nga template
+                if requested_time:
+                    time_str = requested_time  # p.sh. "07:00"
+                else:
+                    # nxjerrim orën nga departure_at ekzistues
+                    departure_dt_tmp = datetime.fromisoformat(template["departure_at"])
+                    time_str = departure_dt_tmp.strftime("%H:%M")
+
+                # kombinojmë datën dhe orën në format "YYYY-MM-DD HH:MM:00"
+                departure_dt = datetime.fromisoformat(f"{requested_date}T{time_str}:00")
+
+            # krijojmë trip-in e ri
+            cur.execute(
+                """
+                INSERT INTO trips (route_id, departure_at, total_seats, base_price)
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    route_id,
+                    departure_dt.isoformat(timespec="seconds"),
+                    template["total_seats"],
+                    template["base_price"],
+                ),
+            )
+            trip_id = cur.lastrowid
+            total_seats = template["total_seats"]
+            base_price = template["base_price"]
+
+        else:
+            # kemi gjetur trip nga query e mësipërme
+            trip_id = trip_row["trip_id"]
+            total_seats = trip_row["total_seats"]
+            base_price = trip_row["base_price"]
+
+
+        
+
+
+        # vendet e zëna aktualisht për këtë trip (reserved + paid)
+        taken_rows = cur.execute(
             """
-            SELECT id AS trip_id, total_seats, base_price
-            FROM trips
-            WHERE route_id = ?
-            ORDER BY departure_at
-            LIMIT 1
+            SELECT seat_no
+            FROM tickets
+            WHERE trip_id = ?
+              AND status IN ('reserved', 'paid')
+            ORDER BY seat_no
             """,
-            (route_id,),
-        ).fetchone()
-
-        if not trip_row:
-            return jsonify({"error": "Trip not found"}), 404
-
-        trip_id = trip_row["trip_id"]
-        total_seats = trip_row["total_seats"]
-        base_price = trip_row["base_price"]
-
-        # vendet e zëna aktualisht për këtë trip
-        taken_rows = conn.execute(
-            "SELECT seat_no FROM tickets WHERE trip_id = ? ORDER BY seat_no",
             (trip_id,),
         ).fetchall()
         taken_seats = {row["seat_no"] for row in taken_rows}
@@ -114,6 +207,7 @@ def api_tickets():
         tickets = []
 
         try:
+            # për çdo vend të zgjedhur, llogarisim çmimin (dynamic pricing + zbritje për fëmijë)
             for i, seat_no in enumerate(best_block):
                 sold_count = len(taken_seats) + i
                 occupancy = sold_count / total_seats if total_seats > 0 else 0
@@ -128,21 +222,24 @@ def api_tickets():
 
                 base_seat_price = round(base_price * factor, 2)
 
+                round_trip_multiplier = 2 if is_round_trip else 1
+
                 # Zbritja 10% për children
                 if i < adults:
-                    # këto vende i llogarisim për adult
-                    price = base_seat_price
-                    passenger_type = "adult"
+                # këto vende i llogarisim për adult
+                   price = round(base_seat_price * round_trip_multiplier, 2)
+                   passenger_type = "adult"
                 else:
-                    # pjesa tjetër e vendeve janë children → -10%
-                    price = round(base_seat_price * 0.9, 2)
-                    passenger_type = "child"
+                 # pjesa tjetër e vendeve janë children -> -10%
+                   price = round(base_seat_price * 0.9 * round_trip_multiplier, 2)
+                   passenger_type = "child"
 
-                # HMAC token
+                # HMAC token (i shkurtojme në 8 karaktere që të mos tejkalojmë limitin e Stripe metadata)
                 message = f"{trip_id}:{seat_no}".encode("utf-8")
-                token = hmac.new(SECRET_KEY, message, hashlib.sha256).hexdigest()
+                full_token = hmac.new(SECRET_KEY, message, hashlib.sha256).hexdigest()
+                token = full_token[:8]
 
-                conn.execute(
+                cur.execute(
                     """
                     INSERT INTO tickets (trip_id, seat_no, price, status, token)
                     VALUES (?, ?, ?, 'reserved', ?)
@@ -172,7 +269,6 @@ def api_tickets():
             recipients=[email],
         )
 
-        # Teksti i email-it: info + seat & price për secilën biletë
         body_lines = [
             "Thank you for your reservation!",
             f"Route ID: {route_id}",
@@ -182,43 +278,22 @@ def api_tickets():
         ]
 
         for t in tickets:
-            line = f"- Seat: {t['seat_no']}  |  Price: {t['price']} €"
-            if t.get("passenger_type") == "child":
-                line += "  (Child -10%)"
+            line = f" - Seat {t['seat_no']}: {t['price']} € ({t['passenger_type']})"
             body_lines.append(line)
 
-        body_lines.append("")
-        body_lines.append("Your tickets are attached as QR codes.")
-
         msg.body = "\n".join(body_lines)
-
-        # Për secilën biletë gjenero QR code dhe e bashkangjesim
-        for t in tickets:
-            token = t["token"]
-
-            qr = qrcode.make(token)
-            buffer = BytesIO()
-            qr.save(buffer, format="PNG")
-            buffer.seek(0)
-
-            msg.attach(
-                filename=f"ticket_{t['seat_no']}.png",
-                content_type="image/png",
-                data=buffer.read()
-            )
-
         mail.send(msg)
-
     except Exception as e:
-        print("Error sending email:", e)
+        print("Failed to send email:", e)
 
-    # Rezultati që ia kthen front-end-it
-    result = {
-        "trip_id": trip_id,
-        "count": len(tickets),
-        "tickets": tickets,
-    }
-    return jsonify(result)
+    return jsonify(
+        {
+            "trip_id": trip_id,
+            "tickets": tickets,
+            "base_price": base_price,
+        }
+    )
+
 
 
 # ---------------------------------------------------
@@ -427,10 +502,16 @@ def stats_routes():
 def create_checkout_session():
     data = request.get_json() or {}
     tokens = data.get("tokens", [])
-    amount = data.get("amount")  # në cent (p.sh. 400 = 4.00 €)
+    raw_amount = data.get("amount")  # mund të vijë si int, float, ose string
     email = data.get("email")
 
-    if not tokens or not amount:
+    # normalizojmë shumën në integer (cent)
+    try:
+        amount_cents = int(round(float(raw_amount)))
+    except (TypeError, ValueError):
+        return {"error": "Invalid amount"}, 400
+
+    if not tokens or amount_cents <= 0:
         return {"error": "Missing tokens or amount"}, 400
 
     try:
@@ -443,14 +524,13 @@ def create_checkout_session():
                         "product_data": {
                             "name": f"Bus tickets ({len(tokens)} passenger(s))",
                         },
-                        "unit_amount": int(amount),  # në cent
+                        "unit_amount": amount_cents,  # tash është int i sigurt
                     },
                     "quantity": 1,
                 }
             ],
             success_url="http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}",
             cancel_url="http://localhost:5173/payment-cancelled",
-            customer_email=email,
             metadata={
                 "ticket_tokens": ",".join(tokens),
             },
@@ -460,6 +540,7 @@ def create_checkout_session():
     except Exception as e:
         print("Stripe error:", e)
         return {"error": "Failed to create checkout session"}, 500
+
 
 
 @app.route("/api/stripe/webhook", methods=["POST"])
@@ -491,7 +572,7 @@ def stripe_webhook():
         print("💳 Payment completed for tokens:", tokens)
 
         if tokens:
-            # Pjesa POSHTË është e njëjtë me api_confirm_tickets, por pa kthyer JSON
+            
             with get_connection() as conn:
                 placeholders = ",".join(["?"] * len(tokens))
 
@@ -525,8 +606,64 @@ def stripe_webhook():
         else:
             print("⚠️ No ticket_tokens found in session metadata.")
 
-    # Stripe pret vetëm një status 2xx, s’ka nevojë për JSON
+    
     return "", 200
+
+
+@app.route("/api/stats/monthly-revenue")
+def monthly_revenue():
+    with get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+
+        # Marrim të ardhurat mujore sipas DATËS SË UDHËTIMIT (jo datës së blerjes)
+        rows = cur.execute(
+            """
+            SELECT
+                strftime('%Y', tr.departure_at) AS year,
+                strftime('%m', tr.departure_at) AS month,
+                COALESCE(SUM(t.price), 0) AS total_revenue
+            FROM tickets t
+            JOIN trips tr ON t.trip_id = tr.id
+            WHERE t.status = 'paid'
+            GROUP BY year, month
+            ORDER BY year, month
+            """
+        ).fetchall()
+
+    months = []
+
+    if rows:
+        # Për thjeshtësi: përdorim vitin e parë që gjejmë (te projekti yt është 2025)
+        year = int(rows[0]["year"])
+        # Map: {muaji -> total_revenue}
+        revenue_by_month = {
+            int(r["month"]): float(r["total_revenue"] or 0.0)
+            for r in rows
+            if r["year"] == str(year)
+        }
+    else:
+        # Nëse s'ka asnjë biletë, përdor vitin aktual
+        year = datetime.now().year
+        revenue_by_month = {}
+
+    # Krijojmë një listë me 12 muaj, edhe nëse kanë 0 €
+    for m in range(1, 13):
+        label = f"{m:02d}/{year}"          # p.sh. "11/2025"
+        month_key = f"{year}-{m:02d}"      # p.sh. "2025-11"
+        total = revenue_by_month.get(m, 0.0)
+
+        months.append(
+            {
+                "month": month_key,
+                "label": label,
+                "total_revenue": total,
+            }
+        )
+
+    return jsonify({"months": months})
+
+
 
 
 if __name__ == "__main__":

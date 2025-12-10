@@ -343,6 +343,58 @@ function App() {
   const [statsError, setStatsError] = useState(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
+  const [monthlyStats, setMonthlyStats] = useState([]);
+  const [monthlyError, setMonthlyError] = useState(null);
+
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [isLoadingMonthly, setIsLoadingMonthly] = useState(false);
+
+
+
+
+function MonthlyRevenueChart({ data }) {
+  if (!data || data.length === 0) return null;
+
+  const maxRevenue =
+    Math.max(...data.map((m) => m.total_revenue || 0)) || 1;
+
+  return (
+    <div className="monthly-chart">
+      {data.map((m) => {
+        const value = m.total_revenue || 0;
+
+        // Llogarisim lartësinë në %, me minimum për kolonat pozitive
+        let heightPct;
+        if (value <= 0) {
+          heightPct = 4; // një vijë e hollë për muajt me 0 €
+        } else {
+          heightPct = (value / maxRevenue) * 100;
+          if (heightPct < 25) heightPct = 25; // min 25% që të duket
+        }
+
+        return (
+          <div key={m.month} className="monthly-chart-column">
+            <div
+              className="monthly-chart-bar"
+              style={{ height: `${heightPct}%` }}
+              title={`${m.label}: ${value.toFixed(2)} €`}
+            >
+              {value > 0 && (
+                <span className="monthly-chart-value">
+                  {value.toFixed(0)} €
+                </span>
+              )}
+            </div>
+            <span className="monthly-chart-label">{m.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+
+
 
 
 
@@ -379,7 +431,6 @@ function App() {
 
 
 
-  // Përmbledhja e çmimit në bazë të biletave të rezervuara (adult/child + zbritja 10%)
  const priceSummary = useMemo(() => {
   if (!reservationResult || !reservationResult.tickets) return null;
 
@@ -395,7 +446,6 @@ function App() {
 
     if (t.passenger_type === "child") {
       childCount += 1;
-      // çmimi i plotë para zbritjes 10% (përafërsisht)
       baseFullPriceIfNoDiscount += price / 0.9;
     } else {
       adultCount += 1;
@@ -403,12 +453,8 @@ function App() {
     }
   }
 
-  // Nëse është vajtje–kthim, paguajmë për 2 udhëtime
-  const legs =
-    tripType === "round-trip" && searchResult?.returnTripId ? 2 : 1;
-
-  const totalPrice = baseTotalPrice * legs;
-  const fullPriceIfNoDiscount = baseFullPriceIfNoDiscount * legs;
+  const totalPrice = baseTotalPrice;
+  const fullPriceIfNoDiscount = baseFullPriceIfNoDiscount;
   const savings = fullPriceIfNoDiscount - totalPrice;
 
   return {
@@ -417,7 +463,7 @@ function App() {
     totalPrice,
     savings: savings > 0 ? savings : 0,
   };
-}, [reservationResult, tripType, searchResult]);
+}, [reservationResult]);
 
 
 
@@ -697,29 +743,53 @@ const handleChildrenChange = (e) => {
     }
   };
 
-    const handleLoadStats = async () => {
-    try {
-      setIsLoadingStats(true);
-      setStatsError(null);
+   const handleLoadStats = async () => {
+  try {
+    setIsLoadingStats(true);
+    setStatsError(null);
 
-      const response = await fetch("http://127.0.0.1:5000/api/stats/routes");
-      const data = await response.json();
+    setIsLoadingMonthly(true);
+    setMonthlyError(null);
 
-      if (!response.ok) {
-        setStatsError(data.error || "Error loading statistics.");
-        setStats(null);
-        return;
-      }
+    const [routesRes, monthlyRes] = await Promise.all([
+      fetch("http://127.0.0.1:5000/api/stats/routes"),
+      fetch("http://127.0.0.1:5000/api/stats/monthly-revenue"),
+    ]);
 
-      setStats(data.routes || []);
-      setView("stats");
-    } catch (err) {
-      setStatsError("Could not connect to server for statistics.");
+    const routesData = await routesRes.json();
+    const monthlyData = await monthlyRes.json();
+
+    // Routes
+    if (!routesRes.ok) {
+      setStatsError(routesData.error || "Error loading statistics.");
       setStats(null);
-    } finally {
-      setIsLoadingStats(false);
+    } else {
+      setStats(routesData.routes || []);
     }
-  };
+
+    // Monthly
+    if (!monthlyRes.ok) {
+      setMonthlyError(
+        monthlyData.error || "Error loading monthly revenue."
+      );
+      setMonthlyRevenue([]);
+    } else {
+      setMonthlyRevenue(monthlyData.months || []);
+    }
+
+    setView("stats");
+  } catch (err) {
+    setStatsError("Could not connect to server for statistics.");
+    setStats(null);
+
+    setMonthlyError("Could not connect to server for monthly stats.");
+    setMonthlyRevenue([]);
+  } finally {
+    setIsLoadingStats(false);
+    setIsLoadingMonthly(false);
+  }
+};
+
 
 
 
@@ -782,6 +852,8 @@ const handleChildrenChange = (e) => {
 };
 
 
+
+
   return (
     <div className="app-root">
       {view !== "search" && (
@@ -822,6 +894,7 @@ const handleChildrenChange = (e) => {
         {view === "search" && (
           
           <div className="search-card">
+
             {/* Tipi i udhëtimit */}
             <div className="trip-type-row">
               <label className="radio">
@@ -908,7 +981,7 @@ const handleChildrenChange = (e) => {
                     type="date"
                     value={departureDate}
                     onChange={(e) => setDepartureDate(e.target.value)}
-                    min={todayISO}
+                    
                   />
                 </div>
 
@@ -1052,14 +1125,13 @@ const handleChildrenChange = (e) => {
 
 </div>
 
+  
 
 
 
 
-
-    {/* Kartela lart me From / To / Dates / Passengers – PA butonin Search */}
+    
     <div className="search-card">
-      {/* Tipi i udhëtimit (njësoj si në faqen e parë) */}
       <div className="trip-type-row">
         <label className="radio">
           <input
@@ -1277,10 +1349,55 @@ const handleChildrenChange = (e) => {
     {stats && stats.length === 0 && !isLoadingStats && !statsError && (
       <p>No sold tickets yet.</p>
     )}
+        <div className="monthly-section">
+      <h3>Monthly revenue</h3>
+      <p
+        style={{
+          fontSize: "12px",
+          color: "#6b7280",
+          marginBottom: "8px",
+        }}
+      >
+        Each bar shows total revenue per month.
+      </p>
+
+      {isLoadingMonthly && <p>Loading monthly revenue...</p>}
+
+      {monthlyError && (
+        <p style={{ color: "red" }}>{monthlyError}</p>
+      )}
+
+      {!isLoadingMonthly && !monthlyError && (
+        <MonthlyRevenueChart data={monthlyRevenue} />
+      )}
+    </div>
+
+   {/* Grafik i të ardhurave mujore */}
+    {monthlyError && (
+      <p style={{ color: "red", marginTop: "12px" }}>{monthlyError}</p>
+    )}
+
+    {monthlyStats && monthlyStats.length > 0 && (
+      <>
+        <h3 style={{ marginTop: "24px", marginBottom: "8px" }}>
+          {lang === "sq" ? "Të ardhurat mujore" : "Monthly revenue"}
+        </h3>
+        <p style={{ fontSize: "13px", color: "#6b7280", marginBottom: "12px" }}>
+          {lang === "sq"
+            ? "Çdo shufër paraqet të ardhurat totale për muaj."
+            : "Each bar shows total revenue per month."}
+        </p>
+
+        <MonthlyRevenueChart data={monthlyStats} />
+      </>
+    )}
+
+  </section>
 
   
-  </section>
 )}
+    
+
 
 
         {/* --------------- FAQJA 2: REZULTATET --------------- */}
@@ -1630,5 +1747,68 @@ const handleChildrenChange = (e) => {
     </div>
   );
 }
+
+function MonthlyRevenueChart({ data }) {
+  if (!data || data.length === 0) return null;
+
+  // marrim vitin nga rreshti i parë p.sh. "2025-12"
+  const first = data[0];
+  const [yearFromData] = (first.month || "").split("-");
+  const year = yearFromData || new Date().getFullYear().toString();
+
+  // bëjmë map nga "MM" -> total_revenue
+  const revenueByMonth = {};
+  for (const item of data) {
+    if (!item.month) continue;
+    const parts = item.month.split("-");
+    if (parts.length !== 2) continue;
+    const [, mm] = parts; // "01".."12"
+    revenueByMonth[mm] = (item.total_revenue || 0);
+  }
+
+  // krijojmë 12 muajt e vitit me 0 si default
+  const fullYearData = [];
+  for (let m = 1; m <= 12; m++) {
+    const mm = String(m).padStart(2, "0"); // "01", "02", ...
+    const key = mm;
+    const total = revenueByMonth[key] || 0;
+
+    fullYearData.push({
+      month: `${year}-${mm}`,
+      label: `${mm}/${year}`,
+      total_revenue: total,
+    });
+  }
+
+  const maxRevenue =
+    Math.max(...fullYearData.map((m) => m.total_revenue || 0)) || 1;
+
+  return (
+    <div className="monthly-chart">
+      {fullYearData.map((m) => {
+        const heightPct = (m.total_revenue / maxRevenue) * 100;
+
+        return (
+          <div key={m.month} className="monthly-chart-column">
+            <div
+              className="monthly-chart-bar"
+              style={{ height: `${heightPct}%` }}
+              title={`${m.label}: ${m.total_revenue.toFixed(2)} €`}
+            >
+              {m.total_revenue > 0 && (
+                <span className="monthly-chart-value">
+                  {m.total_revenue.toFixed(0)} €
+                </span>
+              )}
+            </div>
+            <span className="monthly-chart-label">{m.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+
 
 export default App;

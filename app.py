@@ -1,16 +1,16 @@
-from flask import Flask, jsonify, request
 import sqlite3
-from flask_cors import CORS
-from db import get_connection
 import hmac
 import hashlib
-from flask_mail import Mail, Message
 import os
 import smtplib
 import qrcode
+import stripe
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from db import get_connection
+from flask_mail import Mail, Message
 from io import BytesIO
 from datetime import datetime, timedelta
-import stripe
 from flask import Flask, request, jsonify
 
 stripe.api_key = "sk_test_51Sa08OLEYnCumwJRFHnSnI63SaAfohFjJI9wkPXYlIRdexcahCdeonHDJ6Vx0PqNL9kyKCfjHuSHfnt4AtY4LBfD004VxdqPy9"
@@ -37,11 +37,6 @@ SECRET_KEY = b"super-secret-key-change-this"
 @app.route("/api/tickets", methods=["POST"])
 def api_tickets():
     data = request.json or {}
-
-    # nga frontend vjen:
-    # trip_id              -> route_id
-    # date                 -> "2025-11-10"
-    # selected_departure_time -> "07:00"
     route_id = data.get("trip_id")
     adults = data.get("adults", 0)
     children = data.get("children", 0)
@@ -50,13 +45,11 @@ def api_tickets():
     return_date = data.get("return_date")
     is_round_trip = bool(return_date)
 
-    requested_date = data.get("date")  # p.sh. "2025-11-10"
-    requested_time = data.get("selected_departure_time")  # p.sh. "07:00"
+    requested_date = data.get("date")  
+    requested_time = data.get("selected_departure_time")  
 
     if not route_id:
         return jsonify({"error": "trip_id is required"}), 400
-
-    # Sigurohemi që janë numra
     try:
         adults = int(adults)
         children = int(children)
@@ -73,15 +66,10 @@ def api_tickets():
     with get_connection() as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-
-        # -------------------------------------------------
-        # 1) Provo të gjesh trip-in sipas DATËS (+ orës)
-        # -------------------------------------------------
         trip_row = None
 
         if requested_date:
             if requested_time:
-                # filtro edhe sipas orës
                 trip_row = cur.execute(
                     """
                     SELECT id AS trip_id, total_seats, base_price
@@ -95,7 +83,6 @@ def api_tickets():
                     (route_id, requested_date, requested_time),
                 ).fetchone()
             else:
-                # vetëm sipas datës
                 trip_row = cur.execute(
                     """
                     SELECT id AS trip_id, total_seats, base_price
@@ -107,12 +94,7 @@ def api_tickets():
                     """,
                     (route_id, requested_date),
                 ).fetchone()
-
-        # -------------------------------------------------
-        # 2) Nëse nuk gjendet (për çdo rast) – fallback te e vjetra
-        # -------------------------------------------------
             if trip_row is None:
-            # marrim një trip ekzistues si "model"
                 template = cur.execute(
                 """
                 SELECT total_seats, base_price, departure_at
@@ -127,23 +109,17 @@ def api_tickets():
             if template is None:
                 return jsonify({"error": "No template trip for this route"}), 404
 
-            # nëse nuk kemi fare requested_date, atëherë përdorim datën e tripit ekzistues
             if not requested_date:
-                # thjesht e përdorim departure_at e template-it
                 departure_dt = datetime.fromisoformat(template["departure_at"])
             else:
-                # gjej orën: nga frontend nëse është, përndryshe nga template
                 if requested_time:
-                    time_str = requested_time  # p.sh. "07:00"
+                    time_str = requested_time  
                 else:
-                    # nxjerrim orën nga departure_at ekzistues
                     departure_dt_tmp = datetime.fromisoformat(template["departure_at"])
                     time_str = departure_dt_tmp.strftime("%H:%M")
 
-                # kombinojmë datën dhe orën në format "YYYY-MM-DD HH:MM:00"
                 departure_dt = datetime.fromisoformat(f"{requested_date}T{time_str}:00")
 
-            # krijojmë trip-in e ri
             cur.execute(
                 """
                 INSERT INTO trips (route_id, departure_at, total_seats, base_price)
@@ -161,16 +137,9 @@ def api_tickets():
             base_price = template["base_price"]
 
         else:
-            # kemi gjetur trip nga query e mësipërme
             trip_id = trip_row["trip_id"]
             total_seats = trip_row["total_seats"]
             base_price = trip_row["base_price"]
-
-
-        
-
-
-        # vendet e zëna aktualisht për këtë trip (reserved + paid)
         taken_rows = cur.execute(
             """
             SELECT seat_no
@@ -457,13 +426,6 @@ def checkin_ticket(token):
 
 @app.get("/api/stats/routes")
 def stats_routes():
-    """
-    Kthen statistika bazë për çdo linjë:
-    - emri i routes
-    - numri i biletave të shitura (paid + used)
-    - të ardhurat totale
-    - çmimi mesatar
-    """
     with get_connection() as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -502,10 +464,10 @@ def stats_routes():
 def create_checkout_session():
     data = request.get_json() or {}
     tokens = data.get("tokens", [])
-    raw_amount = data.get("amount")  # mund të vijë si int, float, ose string
+    raw_amount = data.get("amount") 
     email = data.get("email")
 
-    # normalizojmë shumën në integer (cent)
+    
     try:
         amount_cents = int(round(float(raw_amount)))
     except (TypeError, ValueError):
@@ -524,7 +486,7 @@ def create_checkout_session():
                         "product_data": {
                             "name": f"Bus tickets ({len(tokens)} passenger(s))",
                         },
-                        "unit_amount": amount_cents,  # tash është int i sigurt
+                        "unit_amount": amount_cents,  
                     },
                     "quantity": 1,
                 }
@@ -564,7 +526,6 @@ def stripe_webhook():
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
 
-        # lexojmë token-at e biletave nga metadata (nga create_checkout_session)
         metadata = session.get("metadata", {}) or {}
         tokens_str = metadata.get("ticket_tokens", "")
         tokens = [t for t in tokens_str.split(",") if t]
@@ -634,23 +595,19 @@ def monthly_revenue():
     months = []
 
     if rows:
-        # Për thjeshtësi: përdorim vitin e parë që gjejmë (te projekti yt është 2025)
         year = int(rows[0]["year"])
-        # Map: {muaji -> total_revenue}
         revenue_by_month = {
             int(r["month"]): float(r["total_revenue"] or 0.0)
             for r in rows
             if r["year"] == str(year)
         }
     else:
-        # Nëse s'ka asnjë biletë, përdor vitin aktual
         year = datetime.now().year
         revenue_by_month = {}
 
-    # Krijojmë një listë me 12 muaj, edhe nëse kanë 0 €
     for m in range(1, 13):
-        label = f"{m:02d}/{year}"          # p.sh. "11/2025"
-        month_key = f"{year}-{m:02d}"      # p.sh. "2025-11"
+        label = f"{m:02d}/{year}"          
+        month_key = f"{year}-{m:02d}"      
         total = revenue_by_month.get(m, 0.0)
 
         months.append(

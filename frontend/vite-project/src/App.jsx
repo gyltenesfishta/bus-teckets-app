@@ -1799,41 +1799,31 @@ const handleChildrenChange = (e) => {
       {showHelp && (
   <div className="help-modal-overlay" onClick={() => setShowHelp(false)}>
     <div className="help-modal" onClick={(e) => e.stopPropagation()}>
+
       <h2>{t("helpTitle")}</h2>
       <p className="help-subtitle">{t("helpSubtitle")}</p>
 
-      <div className="help-modal-grid">
-        <div className="help-modal-card">
-          <div className="icon">🚌</div>
-          <h3>{t("helpTitle")}: </h3>
-          <p>{t("helpBookText")}:</p>
-        </div>
+      <video
+        width="100%"
+        controls
+        style={{ borderRadius: "8px", marginTop: "12px" }}
+      >
+        <source src="/public/vite-project - Google Chrome - 13 December 2025.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
 
-        <div className="help-modal-card">
-          <div className="icon">💳</div>
-          <h3>{t("helpPayTitle")}:</h3>
-          <p>{t("helpPayText")}:</p>
-        </div>
-
-        <div className="help-modal-card">
-          <div className="icon">🎟️</div>
-          <h3>{t("helpReceiveTitle")}:</h3>
-          <p>{t("helpReceiveText")}</p>
-        </div>
-
-        <div className="help-modal-card">
-          <div className="icon">📲</div>
-          <h3>{t("helpBusTitle")}:</h3>
-          <p>{t("helpBusText")}</p>
-        </div>
-      </div>
-
-      <button className="close-help" onClick={() => setShowHelp(false)}>
+      <button
+        className="close-help"
+        style={{ marginTop: "12px" }}
+        onClick={() => setShowHelp(false)}
+      >
         {t("helpClose")}
       </button>
+
     </div>
   </div>
 )}
+
 
     </div>
   );

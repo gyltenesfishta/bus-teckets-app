@@ -20,16 +20,15 @@ body {
   background: #f3f4f6;
 }
 
-/* ===== HERO – shiriti jeshil lart ===== */
+
 .hero {
-  /* e bën sfondin jeshil full-width në krejt ekranin */
   background: linear-gradient(135deg, #0bb44b, #18c95e);
   color: #ffffff;
   padding: 64px 0 96px;
 
  
   width: 120vw;
-  margin-left: calc(30% - 30vw);
+  margin-left: calc(22% - 22vw);
 }
 
 .hero h1,
@@ -85,12 +84,10 @@ body {
 }
 
 
-/* ===== Seksioni poshtë hero-s ku renditet forma + rezultatet ===== */
-/* <main className="search-section"> */
 .search-section {
   flex: 1;
   max-width: 1100px;
-  margin: -64px auto 40px; /* karta “ngjitet” tek hero si te FlixBus */
+  margin: -64px auto 40px; 
   padding: 0 24px 40px;
   display: flex;
   flex-direction: column;

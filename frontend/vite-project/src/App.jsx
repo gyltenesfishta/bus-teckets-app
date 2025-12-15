@@ -41,6 +41,7 @@ const translations = {
 
     // Trips list (SearchResults)
     outboundTrips: "Outbound trips",
+    inboundTrips: "Inbound trips",
     returnTrips: "Return trips",
     busStation: "bus station",
     stops: "stops",
@@ -51,7 +52,7 @@ const translations = {
     tryAnother: "Try selecting another destination",
 
     // Result card (page 2)
-    Searchresult: "Searchresult",
+    Searchresult: "Search Result",
     Route: "Route:",
     Triptype: "Trip Type",
     departureDate: "Departure date",
@@ -182,7 +183,7 @@ helpButton: "Help",
 
     // Result card (page 2)
     Searchresult: "Rezultati i kërkimit",
-    "Route:": "Linja:",
+    Route: "Linja:",
     Triptype: "Lloji i udhëtimit",
     departureDate: "Data e nisjes",
     returnDate: "Data e kthimit",
@@ -274,7 +275,6 @@ helpButton: "Ndihmë",
 
 
 
-// Linjat tona me çmimet bazë (për një drejtim)
 const ROUTES = [
   { id: 1, from: "Pristina", to: "Podujevo", price: 1.5 },
   { id: 2, from: "Pristina", to: "Fushe Kosove", price: 1.5 },
@@ -288,7 +288,6 @@ const ROUTES = [
 
 ];
 
-// çmimi për një drejtim, pavarësisht kahjes
 function getRoutePrice(from, to) {
   if (from === to) return null;
 
@@ -300,7 +299,7 @@ function getRoutePrice(from, to) {
   return route ? route.price : null;
 }
 
-// ID e linjës sipas from/to
+// ID e linjes sipas from/to
 function getRouteId(from, to) {
   if (from === to) return null;
 
@@ -328,14 +327,13 @@ function App() {
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
 
-// total pasagjerë = adults + children
+// total pasagjere = adults + children
   const passengers = useMemo(
   () => adults + children,
   [adults, children]
 );
 
   const [searchResult, setSearchResult] = useState({
-    // këto fusha mund të jenë bosh në fillim
     selectedRouteId: null,
     selectedTripId: null,
     selectedDepartureTime: "",
@@ -363,7 +361,7 @@ function App() {
   const t = (key) => translations[lang]?.[key] || key;
 
 
-  // për kontrollimin e biletës
+  // per kontrollimin e biletes
   const [validateToken, setValidateToken] = useState("");
   const [validateResult, setValidateResult] = useState(null);
   const [validateError, setValidateError] = useState(null);
